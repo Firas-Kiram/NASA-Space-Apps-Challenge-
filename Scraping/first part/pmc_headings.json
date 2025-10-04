@@ -1,0 +1,342 @@
+[
+  {
+    "level": 1,
+    "text": "Mice in Bion-M 1 Space Mission: Training and Selection",
+    "tag": "h1"
+  },
+  {
+    "level": 2,
+    "text": "PERMALINK",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "Abstract",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "Introduction",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "Materials and Methods",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "Results and Discussion",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "General Outcomes",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "Conclusions",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "Acknowledgments",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "Funding Statement",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "References",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "ACTIONS",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "RESOURCES",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "Cite",
+    "tag": "h2"
+  },
+  {
+    "level": 2,
+    "text": "Add to Collections",
+    "tag": "h2"
+  },
+  {
+    "level": 3,
+    "text": "Alexander Andreev-Andrievskiy",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Anfisa Popova",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Richard Boyle",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Jeffrey Alberts",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Boris Shenkman",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Olga Vinogradova",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Oleg Dolgov",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Konstantin Anokhin",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Darya Tsvirkun",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Pavel Soldatov",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Tatyana Nemirovskaya",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Eugeniy Ilyin",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Vladimir Sychev",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Overview of the Bion-m 1 mission",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Ethical statement",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Animals",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Experimental groups",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Housing",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Habitats",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Diet",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Telemetry probes implantation",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Pre-flight training of mice designated for in vivo studies",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Transportation",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Statistical analysis",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Group housing",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Food and water consumption",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Telemetry probes impact on the mice welfare",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Climate",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Mice condition after the flight and control experiments",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Mice behavior during the flight",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Examination at the landing site",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Body weight data",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Behavior in the open-field test",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Post-flight adjustment of experimental groups",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Implementation of the scientific program",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Similar articles",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Cited by other articles",
+    "tag": "h3"
+  },
+  {
+    "level": 3,
+    "text": "Links to NCBI Databases",
+    "tag": "h3"
+  },
+  {
+    "level": 4,
+    "text": "Roles",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Figure 1. Schematic diagram of the experiments.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Table 1. Key dates of the flight experiment.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Table 2. Key dates of the on-ground control experiment.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Figure 2. Habitat interior.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Figure 3. Metabolic parameters in mice fed pelleted food and paste diet.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Figure 4. Bodyweight (A) and relative BW change (B) after telemetry probe implantation.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Table 3. The outcome of the pre-flight procedures with mice for in vivo studies.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Figure 5. Mice bodyweight dynamics after transportation to the launch site.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Table 4. Climate parameters in flight, control experiments and the animal facility.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Figure 6. A representative photograph of mice in the flight habitats.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Figure 7. Mice body weight during training (A) and bodyweight before and after the experiments (B).",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Table 5. Open field test.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Figure 8. Post-flight open field behavior parameters expressed as percent of pre-flight background values.",
+    "tag": "h4"
+  },
+  {
+    "level": 4,
+    "text": "Table 6. Number of animals in experimental groups after post-flight adjustment.",
+    "tag": "h4"
+  }
+]

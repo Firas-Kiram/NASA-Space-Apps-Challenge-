@@ -1,0 +1,26 @@
+PMC Papers Processing Summary Report
+==================================================
+
+Total papers processed: 5
+Total main sections: 5
+Total subsections: 288
+Average sections per paper: 1.0
+
+Papers with authors found: 0/5
+Total authors found: 0
+Average authors per paper: 0.0
+
+Papers with editors found: 5/5
+Total editors found: 25
+Average editors per paper: 5.0
+
+Most common section types:
+------------------------------
+mice in bion-m 1 space mission: training and selection: 1 papers
+microgravity induces pelvic bone loss through osteoclastic activity, osteocytic osteolysis, and osteoblastic cell cycle inhibition by cdkn1a/p21: 1 papers
+microgravity and cellular biology: insights into cellular responses and implications for human health: 1 papers
+selective proliferation of highly functional adipose-derived stem cells in microgravity culture with stirred microspheres: 1 papers
+microgravity validation of a novel system for rna isolation and multiplex quantitative real time pcr analysis of gene expression on the international space station: 1 papers
+
+==================================================
+Processing completed successfully!

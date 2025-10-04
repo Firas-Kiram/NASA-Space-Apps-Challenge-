@@ -12,6 +12,23 @@ app.use(express.json());
 // simple health
 app.get('/health', (req, res) => res.json({ ok: true }));
 
+// test endpoint for PMC metadata
+app.get('/api/test-pmc/:pmcId', async (req, res) => {
+  try {
+    const { pmcId } = req.params;
+    const { fetchPmcMetadata } = require('./services/pmcService');
+    
+    console.log(`Testing PMC ID: ${pmcId}`);
+    const result = await fetchPmcMetadata(pmcId);
+    console.log(`PMC result for ${pmcId}:`, result);
+    
+    res.json({ pmcId, result });
+  } catch (err) {
+    console.error('PMC test error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 /**
  * GET /api/publications
  * - returns all publications
