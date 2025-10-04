@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const publicationService = require('./services/publicationService');
@@ -94,6 +95,93 @@ app.get('/api/publications/by-keywords', async (req, res) => {
  * GET /api/download-pdf
  * Downloads PDF from PMC and saves it locally, then returns the local path
  */
+// Helper: follow redirects and stream to file
+function downloadWithRedirects(targetUrl, filePath, depth = 0, maxRedirects = 5, extraHeaders = {}) {
+  return new Promise((resolve, reject) => {
+    if (depth > maxRedirects) {
+      return reject(new Error('Too many redirects'));
+    }
+
+    const client = targetUrl.startsWith('https') ? https : http;
+    const req = client.get(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36',
+        'Accept': 'application/pdf,application/octet-stream,*/*;q=0.8',
+        'Referer': 'https://www.ncbi.nlm.nih.gov/',
+        'Accept-Language': 'en-US,en;q=0.9',
+        ...extraHeaders
+      }
+    }, (response) => {
+      // Handle redirects
+      if ([301, 302, 303, 307, 308].includes(response.statusCode)) {
+        const location = response.headers.location;
+        if (!location) {
+          return reject(new Error(`Redirect without location header from ${targetUrl}`));
+        }
+        // Resolve relative redirects
+        const nextUrl = new URL(location, targetUrl).toString();
+        response.resume(); // discard data
+        return resolve(downloadWithRedirects(nextUrl, filePath, depth + 1, maxRedirects, extraHeaders));
+      }
+
+      if (response.statusCode !== 200) {
+        response.resume();
+        return reject(new Error(`HTTP ${response.statusCode} from ${targetUrl}`));
+      }
+
+      const out = fs.createWriteStream(filePath);
+      response.pipe(out);
+      out.on('finish', () => {
+        out.close(() => resolve());
+      });
+      out.on('error', (err) => {
+        out.close(() => {
+          fs.unlink(filePath, () => {});
+          reject(err);
+        });
+      });
+    });
+
+    req.on('error', (err) => reject(err));
+    req.setTimeout(30000, () => {
+      req.destroy(new Error('Request timeout'));
+    });
+  });
+}
+
+// Fetch HTML/text with redirects
+function fetchTextWithRedirects(targetUrl, depth = 0, maxRedirects = 5) {
+  return new Promise((resolve, reject) => {
+    if (depth > maxRedirects) return reject(new Error('Too many redirects'));
+    const client = targetUrl.startsWith('https') ? https : http;
+    const req = client.get(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Referer': 'https://www.ncbi.nlm.nih.gov/'
+      }
+    }, (response) => {
+      if ([301,302,303,307,308].includes(response.statusCode)) {
+        const location = response.headers.location;
+        if (!location) return reject(new Error(`Redirect without location from ${targetUrl}`));
+        const nextUrl = new URL(location, targetUrl).toString();
+        response.resume();
+        return resolve(fetchTextWithRedirects(nextUrl, depth + 1, maxRedirects));
+      }
+      if (response.statusCode !== 200) {
+        response.resume();
+        return reject(new Error(`HTTP ${response.statusCode} from ${targetUrl}`));
+      }
+      let data = '';
+      response.setEncoding('utf8');
+      response.on('data', chunk => data += chunk);
+      response.on('end', () => resolve(data));
+    });
+    req.on('error', reject);
+    req.setTimeout(30000, () => req.destroy(new Error('Request timeout')));
+  });
+}
+
 app.get('/api/download-pdf', async (req, res) => {
   try {
     const { url } = req.query;
@@ -112,52 +200,106 @@ app.get('/api/download-pdf', async (req, res) => {
     const filename = `${pmcId}.pdf`;
     const filePath = path.join(PDF_DIR, filename);
 
-    // Check if file already exists
-    if (fs.existsSync(filePath)) {
+    // Helper to check if a file is a valid PDF by magic number
+    const isPdfFile = (p) => {
+      try {
+        const fd = fs.openSync(p, 'r');
+        const buf = Buffer.alloc(5);
+        fs.readSync(fd, buf, 0, 5, 0);
+        fs.closeSync(fd);
+        return buf.toString() === '%PDF-';
+      } catch {
+        return false;
+      }
+    };
+
+    // Check if file already exists and is valid PDF
+    if (fs.existsSync(filePath) && isPdfFile(filePath)) {
       console.log(`PDF already exists: ${filename}`);
-      return res.json({ 
-        success: true, 
-        localPath: `/pdfs/${filename}`,
-        cached: true
-      });
+      return res.json({ success: true, localPath: `/pdfs/${filename}`, cached: true });
+    } else if (fs.existsSync(filePath)) {
+      // Remove invalid previous file
+      try { fs.unlinkSync(filePath); } catch {}
     }
 
-    // Construct PDF URL
-    const pdfUrl = url.endsWith('/pdf') ? url : `${url}/pdf`;
-    console.log(`Downloading PDF: ${pdfUrl}`);
+    // Construct PDF URL (PMC supports /pdf path that redirects to actual file)
+    // Build candidate URLs for PMC PDF
+    const candidates = [
+      // PMC OA PDF service (most reliable)
+      `https://www.ncbi.nlm.nih.gov/pmc/articles/${pmcId}/pdf/${pmcId}.pdf`,
+      // Alternative PMC host
+      `https://pmc.ncbi.nlm.nih.gov/articles/${pmcId}/pdf/${pmcId}.pdf`,
+      // User-provided URL variants
+      url.endsWith('/pdf') ? url : `${url.replace(/\/$/, '')}/pdf`,
+      `${url.replace(/\/$/, '')}/pdf/${pmcId}.pdf`
+    ];
 
-    // Download the PDF
-    https.get(pdfUrl, (response) => {
-      if (response.statusCode !== 200) {
-        console.error(`Failed to download PDF: ${response.statusCode}`);
-        return res.status(response.statusCode).json({ 
-          error: 'Failed to download PDF from PMC',
-          statusCode: response.statusCode
-        });
+    let downloaded = false;
+    const tmpPath = `${filePath}.tmp`;
+    for (const cand of candidates) {
+      try {
+        console.log(`Attempting PDF download: ${cand}`);
+        // Ensure previous temp is removed
+        try { fs.unlinkSync(tmpPath); } catch {}
+        const headers = {};
+        // Some PDFs require Origin/Host alignment
+        try {
+          const u = new URL(cand);
+          headers['Host'] = u.host;
+          headers['Origin'] = `${u.protocol}//${u.host}`;
+        } catch {}
+        await downloadWithRedirects(cand, tmpPath, 0, 5, headers);
+        if (isPdfFile(tmpPath)) {
+          fs.renameSync(tmpPath, filePath);
+          downloaded = true;
+          console.log(`PDF downloaded successfully from: ${cand}`);
+          break;
+        } else {
+          // Not a PDF; cleanup and try next
+          try { fs.unlinkSync(tmpPath); } catch {}
+        }
+      } catch (e) {
+        console.warn(`Download attempt failed for ${cand}: ${e.message}`);
+        try { fs.unlinkSync(tmpPath); } catch {}
       }
+    }
 
-      const fileStream = fs.createWriteStream(filePath);
-      response.pipe(fileStream);
+    if (!downloaded) {
+      // Fallback: fetch article HTML and parse real PDF filename
+      const articleCandidates = [
+        `https://www.ncbi.nlm.nih.gov/pmc/articles/${pmcId}/`,
+        `https://pmc.ncbi.nlm.nih.gov/articles/${pmcId}/`,
+      ];
+      for (const articleUrl of articleCandidates) {
+        try {
+          console.log(`Fetching article HTML to resolve PDF: ${articleUrl}`);
+          const html = await fetchTextWithRedirects(articleUrl);
+          const matches = Array.from(html.matchAll(/\"(\/pmc\/articles\/${pmcId}\/pdf\/[^\"]+\.pdf)\"/g));
+          const uniquePaths = [...new Set(matches.map(m => m[1]))];
+          for (const p of uniquePaths) {
+            const abs = `https://www.ncbi.nlm.nih.gov${p}`;
+            console.log(`Attempting resolved PDF: ${abs}`);
+            try { fs.unlinkSync(tmpPath); } catch {}
+            await downloadWithRedirects(abs, tmpPath);
+            if (isPdfFile(tmpPath)) {
+              fs.renameSync(tmpPath, filePath);
+              downloaded = true;
+              break;
+            } else {
+              try { fs.unlinkSync(tmpPath); } catch {}
+            }
+          }
+          if (downloaded) break;
+        } catch (e) {
+          console.warn(`Failed resolving from HTML: ${e.message}`);
+        }
+      }
+      if (!downloaded) {
+        return res.status(502).json({ error: 'Failed to download PDF from external source' });
+      }
+    }
 
-      fileStream.on('finish', () => {
-        fileStream.close();
-        console.log(`PDF downloaded successfully: ${filename}`);
-        res.json({ 
-          success: true, 
-          localPath: `/pdfs/${filename}`,
-          cached: false
-        });
-      });
-
-      fileStream.on('error', (err) => {
-        fs.unlink(filePath, () => {});
-        console.error('File write error:', err);
-        res.status(500).json({ error: 'Failed to save PDF' });
-      });
-    }).on('error', (err) => {
-      console.error('Download error:', err);
-      res.status(500).json({ error: 'Failed to download PDF' });
-    });
+    return res.json({ success: true, localPath: `/pdfs/${filename}`, cached: false });
 
   } catch (err) {
     console.error('PDF download error:', err);

@@ -8,26 +8,47 @@ const PDFViewer = ({ pdfUrl, title, onClose }) => {
   // Download PDF when component mounts
   useEffect(() => {
     const downloadPDF = async () => {
+      setLoading(true);
+      setError(null);
+
+      // Build candidate URLs
+      const baseUrl = pdfUrl || '';
+      const withPdf = baseUrl.endsWith('/pdf') ? baseUrl : (baseUrl.endsWith('/') ? `${baseUrl}pdf` : `${baseUrl}/pdf`);
+      const pmcMatch = baseUrl.match(/PMC\d+/);
+      const pmcId = pmcMatch ? pmcMatch[0] : null;
+      const candidates = [
+        withPdf,
+        pmcId ? `https://www.ncbi.nlm.nih.gov/pmc/articles/${pmcId}/pdf/${pmcId}.pdf` : null,
+        pmcId ? `https://pmc.ncbi.nlm.nih.gov/articles/${pmcId}/pdf/${pmcId}.pdf` : null
+      ].filter(Boolean);
+
       try {
-        setLoading(true);
-        setError(null);
-        
-        console.log('Downloading PDF from:', pdfUrl);
-        
-        // Call backend to download PDF
-        const response = await fetch(`http://localhost:3000/api/download-pdf?url=${encodeURIComponent(pdfUrl)}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          console.log('PDF downloaded successfully:', data.localPath);
-          setLocalPdfPath(`http://localhost:3000${data.localPath}`);
-          setLoading(false);
-        } else {
-          throw new Error(data.error || 'Failed to download PDF');
+        console.log('PDF download candidates:', candidates);
+        let success = false;
+        for (const cand of candidates) {
+          try {
+            const resp = await fetch(`http://localhost:3000/api/download-pdf?url=${encodeURIComponent(cand)}`);
+            let data;
+            try { data = await resp.json(); } catch { data = {}; }
+            if (resp.ok && data && data.success && data.localPath) {
+              console.log('PDF downloaded successfully:', data.localPath);
+              setLocalPdfPath(`http://localhost:3000${data.localPath}`);
+              success = true;
+              break;
+            } else {
+              console.warn('Download attempt failed:', resp.status, data && data.error);
+            }
+          } catch (e) {
+            console.warn('Attempt error:', e);
+          }
+        }
+        if (!success) {
+          throw new Error('Failed to download PDF');
         }
       } catch (err) {
         console.error('Error downloading PDF:', err);
-        setError(err.message);
+        setError(err.message || 'Failed to download PDF');
+      } finally {
         setLoading(false);
       }
     };
