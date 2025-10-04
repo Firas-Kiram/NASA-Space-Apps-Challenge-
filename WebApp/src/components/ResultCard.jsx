@@ -41,19 +41,8 @@ const ResultCard = ({ publication, onSelect, isSelected, onCompare, onSave }) =>
 
       {/* Second line: Tags/Chips */}
       <div className="flex flex-wrap gap-2 mb-3">
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clipRule="evenodd"/>
-          </svg>
-          {publication.organism}
-        </span>
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
-          </svg>
-          {publication.platform}
-        </span>
+        {/* Organism chip removed per request */}
+        {/* Platform chip removed per request */}
         {publication.tags.slice(0, isHovered ? 5 : 3).map((tag, index) => (
           <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
             <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">

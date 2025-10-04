@@ -17,8 +17,6 @@ const EnhancedSearchResults = () => {
   const [error, setError] = useState(null);
   const [availableKeywords, setAvailableKeywords] = useState([]);
   const [filters, setFilters] = useState({
-    organisms: [],
-    platforms: [],
     years: [],
     confidence: [],
     tags: []
@@ -57,23 +55,13 @@ const EnhancedSearchResults = () => {
         const searchLower = searchQuery.toLowerCase();
         const matchesTitle = publication.title.toLowerCase().includes(searchLower);
         const matchesSummary = publication.summary.toLowerCase().includes(searchLower);
-        const matchesOrganism = publication.organism.toLowerCase().includes(searchLower);
+        // organism removed from search
         const matchesTags = publication.tags.some(tag => tag.toLowerCase().includes(searchLower));
         const matchesAuthors = publication.authors.some(author => author.toLowerCase().includes(searchLower));
         
-        if (!matchesTitle && !matchesSummary && !matchesOrganism && !matchesTags && !matchesAuthors) {
+        if (!matchesTitle && !matchesSummary && !matchesTags && !matchesAuthors) {
           return false;
         }
-      }
-
-      // Organism filter
-      if (filters.organisms.length > 0 && !filters.organisms.includes(publication.organism)) {
-        return false;
-      }
-
-      // Platform filter
-      if (filters.platforms.length > 0 && !filters.platforms.includes(publication.platform)) {
-        return false;
       }
 
       // Year filter
@@ -92,11 +80,11 @@ const EnhancedSearchResults = () => {
         if (!matchesConfidence) return false;
       }
 
-      // Tags filter
+      // Keywords (tags) filter - case-insensitive ALL selected must match
       if (filters.tags.length > 0) {
-        const hasMatchingTag = filters.tags.some(filterTag => 
-          publication.tags.includes(filterTag)
-        );
+        const publicationKeywords = (publication.tags || []).map(t => t.toLowerCase());
+        const selectedKeywords = filters.tags.map(t => t.toLowerCase());
+        const hasMatchingTag = selectedKeywords.every(tag => publicationKeywords.includes(tag));
         if (!hasMatchingTag) return false;
       }
 
@@ -205,9 +193,9 @@ const EnhancedSearchResults = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
             </svg>
             <span className="text-sm font-medium text-gray-700">Filters</span>
-            {(filters.organisms.length + filters.platforms.length + filters.years.length + filters.confidence.length + filters.tags.length) > 0 && (
+            {(filters.years.length + filters.confidence.length + filters.tags.length) > 0 && (
               <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-purple-600 rounded-full">
-                {filters.organisms.length + filters.platforms.length + filters.years.length + filters.confidence.length + filters.tags.length}
+                {filters.years.length + filters.confidence.length + filters.tags.length}
               </span>
             )}
           </button>

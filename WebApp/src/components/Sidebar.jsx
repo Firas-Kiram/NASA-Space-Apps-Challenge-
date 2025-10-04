@@ -109,11 +109,6 @@ const Sidebar = () => {
           {/* Inner white card panel */}
           <div className="bg-white rounded-2xl shadow-md h-full flex flex-col">
             <div className="p-6">
-              {/* Primary CTA Button */}
-              <button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-sm mb-6">
-                New Workspace
-              </button>
-              
               {/* Navigation */}
               <nav className="space-y-2">
           {menuItems.map((item) => (

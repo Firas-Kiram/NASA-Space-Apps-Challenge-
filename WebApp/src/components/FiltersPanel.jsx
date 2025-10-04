@@ -9,21 +9,9 @@ const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [] }) => {
     ? availableKeywords.filter(kw => kw.toLowerCase().includes(keywordSearchQuery.toLowerCase()))
     : availableKeywords;
   
-  // Show top 20 keywords or all filtered keywords
-  const displayKeywords = filteredKeywords.slice(0, 20);
-  const handleOrganismChange = (organism) => {
-    const newOrganisms = filters.organisms.includes(organism)
-      ? filters.organisms.filter(o => o !== organism)
-      : [...filters.organisms, organism];
-    onFilterChange({ ...filters, organisms: newOrganisms });
-  };
-
-  const handlePlatformChange = (platform) => {
-    const newPlatforms = filters.platforms.includes(platform)
-      ? filters.platforms.filter(p => p !== platform)
-      : [...filters.platforms, platform];
-    onFilterChange({ ...filters, platforms: newPlatforms });
-  };
+  // Show all filtered keywords
+  const displayKeywords = filteredKeywords;
+  // Platform filter removed per request
 
   const handleTagChange = (tag) => {
     const newTags = filters.tags.includes(tag)
@@ -34,8 +22,6 @@ const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [] }) => {
 
   const clearAllFilters = () => {
     onFilterChange({
-      organisms: [],
-      platforms: [],
       years: [],
       confidence: [],
       tags: []
@@ -57,41 +43,9 @@ const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [] }) => {
         </div>
       </div>
 
-      {/* Organisms Filter */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Organisms</h4>
-        <div className="space-y-2">
-          {filterOptions.organisms.map((organism) => (
-            <label key={organism} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.organisms.includes(organism)}
-                onChange={() => handleOrganismChange(organism)}
-                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
-              />
-              <span className="ml-2 text-sm text-gray-700">{organism}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      {/* Removed Organisms Filter per request */}
 
-      {/* Platform Filter */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Platform</h4>
-        <div className="space-y-2">
-          {filterOptions.platforms.map((platform) => (
-            <label key={platform} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.platforms.includes(platform)}
-                onChange={() => handlePlatformChange(platform)}
-                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
-              />
-              <span className="ml-2 text-sm text-gray-700">{platform}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      {/* Removed Platform Filter per request */}
 
       {/* Year Filter */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -204,11 +158,11 @@ const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [] }) => {
       </div>
 
       {/* Active Filters Summary */}
-      {(filters.organisms.length > 0 || filters.platforms.length > 0 || filters.years.length > 0 || filters.confidence.length > 0 || filters.tags.length > 0) && (
+      {(filters.years.length > 0 || filters.confidence.length > 0 || filters.tags.length > 0) && (
         <div className="bg-purple-50 rounded-2xl p-4 border border-purple-200">
           <h4 className="text-sm font-medium text-purple-900 mb-2">Active Filters</h4>
           <div className="flex flex-wrap gap-1">
-            {[...filters.organisms, ...filters.platforms, ...filters.years, ...filters.confidence, ...filters.tags].map((filter, index) => (
+            {[...filters.years, ...filters.confidence, ...filters.tags].map((filter, index) => (
               <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
                 {filter}
               </span>
