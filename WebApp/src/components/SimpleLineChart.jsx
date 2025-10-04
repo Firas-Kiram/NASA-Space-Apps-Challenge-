@@ -12,8 +12,8 @@ const SimpleLineChart = ({ data, xKey, yKey, color = '#7c3aed' }) => {
   const paddedMax = maxValue + range * 0.1;
   const paddedRange = paddedMax - paddedMin;
   
-  const chartWidth = 500;
-  const chartHeight = 200;
+  const chartWidth = 700;
+  const chartHeight = 420;
   const padding = { top: 20, right: 30, bottom: 40, left: 40 };
 
   const points = data.map((item, index) => {

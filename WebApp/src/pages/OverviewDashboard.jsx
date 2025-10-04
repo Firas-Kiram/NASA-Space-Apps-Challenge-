@@ -151,8 +151,8 @@ const OverviewDashboard = () => {
           <div className="lg:col-span-2">
             <ChartCard
               title="Research Publication Timeline"
-              subtitle="Growth trend and activity over the past 6 years"
-              className="h-96"
+              subtitle="Growth trend and activity over time"
+              className="h-[36rem]"
             >
               <div className="h-full">
                 <SimpleLineChart 
