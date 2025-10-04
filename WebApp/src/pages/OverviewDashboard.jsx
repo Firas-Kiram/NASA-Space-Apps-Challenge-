@@ -6,7 +6,6 @@ import SimpleBarChart from '../components/SimpleBarChart';
 import SimpleDonutChart from '../components/SimpleDonutChart';
 import SimpleLineChart from '../components/SimpleLineChart';
 import dataService from '../services/dataService';
-import { experimentTypes } from '../data/mockData';
 
 const OverviewDashboard = () => {
   const [kpiData, setKpiData] = useState({
@@ -170,13 +169,13 @@ const OverviewDashboard = () => {
           <div className="space-y-6">
             {/* Experiment Types Donut Chart */}
             <ChartCard
-              title="Experiment Types"
-              subtitle="Distribution by methodology"
-              className="h-96"
+              title="Keywords Distribution"
+              subtitle="Top 8 research keywords"
+              className="h-[36rem]"
             >
               <div className="h-full">
-                <SimpleDonutChart 
-                  data={experimentTypes}
+                <SimpleDonutChart
+                  data={researchAreas}
                   colors={['#7c3aed', '#a855f7', '#c084fc', '#e9d5ff']}
                 />
               </div>

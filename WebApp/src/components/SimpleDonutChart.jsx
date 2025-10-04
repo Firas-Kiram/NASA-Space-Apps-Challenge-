@@ -34,7 +34,7 @@ const SimpleDonutChart = ({ data, colors = ['#7c3aed', '#a855f7', '#c084fc', '#e
       {/* Chart */}
       <div className="flex-1 flex items-center justify-center mb-4">
         <div className="relative">
-          <svg width="180" height="180" viewBox="0 0 100 100" className="drop-shadow-sm">
+          <svg width="220" height="220" viewBox="0 0 100 100" className="drop-shadow-sm">
             {data.map((item, index) => {
               const percentage = (item.count / total) * 100;
               const startAngle = (cumulativePercentage / 100) * 360;

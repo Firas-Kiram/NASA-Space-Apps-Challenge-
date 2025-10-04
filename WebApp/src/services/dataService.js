@@ -256,25 +256,23 @@ class DataService {
 
   // Get research areas data based on loaded publications
   getResearchAreas() {
-    const areas = {};
-    
+    const keywordCounts = {};
+
     this.publications.forEach(pub => {
       const tags = this.extractKeywordsAsTags(pub.keywords);
       tags.forEach(tag => {
-        areas[tag] = (areas[tag] || 0) + 1;
+        const key = tag.trim();
+        if (!key) return;
+        keywordCounts[key] = (keywordCounts[key] || 0) + 1;
       });
     });
 
-    const total = Object.values(areas).reduce((sum, count) => sum + count, 0);
-    
-    return Object.entries(areas)
-      .map(([name, count]) => ({
-        name,
-        count,
-        percentage: Math.round((count / total) * 100 * 10) / 10
-      }))
+    const entries = Object.entries(keywordCounts)
+      .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 7); // Top 7 areas
+      .slice(0, 8); // Top 8 keywords
+
+    return entries;
   }
 
   // Get unique keywords from API
