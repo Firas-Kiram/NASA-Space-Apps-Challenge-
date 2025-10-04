@@ -1,11 +1,108 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import searchService from '../services/searchService';
 
 const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [loading, setLoading] = useState(false);
+  const searchRef = useRef(null);
+  const suggestionsRef = useRef(null);
   const { logout, user } = useAuth();
+
+  // Load publications when component mounts
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await searchService.loadPublications();
+      } catch (error) {
+        console.error('Failed to load publications for search:', error);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Handle search input changes
+  const handleSearchChange = async (value) => {
+    setSearchQuery(value);
+    
+    if (value.length >= 2) {
+      setLoading(true);
+      try {
+        const newSuggestions = searchService.getSearchSuggestions(value, 5);
+        setSuggestions(newSuggestions);
+        setShowSuggestions(true);
+        setSelectedIndex(-1);
+      } catch (error) {
+        console.error('Error getting suggestions:', error);
+        setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // Handle suggestion selection
+  const handleSuggestionSelect = (suggestion) => {
+    setSearchQuery(suggestion.title);
+    setShowSuggestions(false);
+    setSelectedIndex(-1);
+    // You can add navigation logic here if needed
+    console.log('Selected suggestion:', suggestion);
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+          handleSuggestionSelect(suggestions[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+        searchRef.current?.blur();
+        break;
+    }
+  };
+
+  // Handle click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 h-18">
@@ -24,19 +121,79 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
 
         {/* Center/Left: Global Search Input */}
         <div className="flex-1 max-w-2xl mx-6">
-          <div className="relative">
+          <div className="relative" ref={suggestionsRef}>
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <input
+              ref={searchRef}
               type="text"
               placeholder="Search publications, authors, experiments..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => {
+                if (suggestions.length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
               className="block w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-full shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm transition-all duration-200"
+              autoComplete="off"
             />
+            
+            {/* Loading indicator and results count */}
+            <div className="absolute inset-y-0 right-0 pr-4 flex items-center space-x-2">
+              {loading && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+              )}
+              {!loading && suggestions.length > 0 && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  {suggestions.length} found
+                </span>
+              )}
+            </div>
+
+            {/* Search suggestions dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                {suggestions.map((suggestion, index) => (
+                  <div
+                    key={suggestion.id}
+                    onClick={() => handleSuggestionSelect(suggestion)}
+                    className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-purple-50 transition-colors ${
+                      index === selectedIndex ? 'bg-purple-50' : ''
+                    }`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 mt-1">
+                        <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {suggestion.title}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Publication
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Footer with search hint */}
+                <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+                  <p className="text-xs text-gray-500">
+                    Press <kbd className="px-1 py-0.5 text-xs bg-gray-200 rounded">Enter</kbd> to search, 
+                    <kbd className="px-1 py-0.5 text-xs bg-gray-200 rounded ml-1">↑↓</kbd> to navigate, 
+                    <kbd className="px-1 py-0.5 text-xs bg-gray-200 rounded ml-1">Esc</kbd> to close
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
