@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Layout from '../components/Layout';
 import SearchBar from '../components/SearchBar';
 import FiltersPanel from '../components/FiltersPanel';
 import ResultsList from '../components/ResultsList';
 import MobileFiltersModal from '../components/MobileFiltersModal';
-import { searchResults } from '../data/searchData';
+import dataService from '../services/dataService';
 
 const EnhancedSearchResults = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,6 +12,9 @@ const EnhancedSearchResults = () => {
   const [savedItems, setSavedItems] = useState([]);
   const [compareItems, setCompareItems] = useState([]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     organisms: [],
     platforms: [],
@@ -19,6 +22,26 @@ const EnhancedSearchResults = () => {
     confidence: [],
     tags: []
   });
+
+  // Load publications data on component mount
+  useEffect(() => {
+    const loadPublications = async () => {
+      try {
+        setLoading(true);
+        await dataService.loadPublications();
+        const transformedData = dataService.transformPublicationsForSearch(dataService.publications);
+        setSearchResults(transformedData);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading publications:', err);
+        setError('Failed to load publications from server');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPublications();
+  }, []);
 
   // Filter and search logic
   const filteredResults = useMemo(() => {
@@ -112,6 +135,43 @@ const EnhancedSearchResults = () => {
       setSavedItems([...savedItems, publication]);
     }
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading publications...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">
+              <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Publications</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout showContextPanel={!!selectedItem} selectedItem={contextItem}>

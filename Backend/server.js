@@ -9,48 +9,18 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// simple health
+// simple health check
 app.get('/health', (req, res) => res.json({ ok: true }));
-
-// test endpoint for PMC metadata
-app.get('/api/test-pmc/:pmcId', async (req, res) => {
-  try {
-    const { pmcId } = req.params;
-    const { fetchPmcMetadata } = require('./services/pmcService');
-    
-    console.log(`Testing PMC ID: ${pmcId}`);
-    const result = await fetchPmcMetadata(pmcId);
-    console.log(`PMC result for ${pmcId}:`, result);
-    
-    res.json({ pmcId, result });
-  } catch (err) {
-    console.error('PMC test error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
 
 /**
  * GET /api/publications
- * - returns all publications
- * - supports query filters: e.g. /api/publications?author=Smith&year=2020
- * - special query `reload=true` will attempt to reload the CSV from disk
+ * - returns all publications with title and link only
+ * - simple endpoint that loads data from CSV file
  */
 app.get('/api/publications', async (req, res) => {
   try {
-    const { reload, ...filters } = req.query;
-
-    if (reload && (reload === 'true' || reload === '1')) {
-      try {
-        await publicationService.loadPublications();
-        console.log('Publications reloaded on demand.');
-      } catch (err) {
-        console.error('Reload failed:', err);
-        return res.status(500).json({ error: 'Failed to reload CSV', details: err.message });
-      }
-    }
-
-    const data = publicationService.getPublications(filters);
-    res.json({ count: data.length, data });
+    const data = publicationService.getPublications();
+    res.json(data);
   } catch (err) {
     console.error('GET /api/publications error:', err);
     res.status(500).json({ error: err.message });

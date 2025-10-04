@@ -1,20 +1,96 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import KPICard from '../components/KPICard';
 import ChartCard from '../components/ChartCard';
 import SimpleBarChart from '../components/SimpleBarChart';
 import SimpleDonutChart from '../components/SimpleDonutChart';
 import SimpleLineChart from '../components/SimpleLineChart';
-import { kpiData, publicationsByYear, researchAreas, monthlyTrends, experimentTypes } from '../data/mockData';
+import dataService from '../services/dataService';
+import { experimentTypes } from '../data/mockData';
 
 const OverviewDashboard = () => {
+  const [kpiData, setKpiData] = useState({
+    totalPublications: 0,
+    activeExperiments: 0,
+    researchAreas: 0,
+    collaborations: 0,
+    recentPublications: 0,
+    citationIndex: 0
+  });
+  const [publicationsByYear, setPublicationsByYear] = useState([]);
+  const [researchAreas, setResearchAreas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        await dataService.loadPublications();
+        
+        const kpi = dataService.getKPIData();
+        const yearData = dataService.getPublicationsByYear();
+        const areas = dataService.getResearchAreas();
+        
+        setKpiData(kpi);
+        setPublicationsByYear(yearData);
+        setResearchAreas(areas);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading dashboard data:', err);
+        setError('Failed to load data from server');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard data...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">
+              <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Data</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Overview Dashboard</h1>
-          <p className="text-gray-600">Comprehensive analysis of 608 NASA bioscience publications and research initiatives</p>
+          <p className="text-gray-600">Comprehensive analysis of {kpiData.totalPublications} NASA bioscience publications and research initiatives</p>
         </div>
 
         {/* Top KPI Cards Row (4 cards) */}
