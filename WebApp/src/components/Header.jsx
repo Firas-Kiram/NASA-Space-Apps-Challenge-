@@ -49,14 +49,20 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
     }
   };
 
-  // Handle suggestion selection
-  const handleSuggestionSelect = (suggestion) => {
-    setSearchQuery(suggestion.title);
-    setShowSuggestions(false);
-    setSelectedIndex(-1);
-    // You can add navigation logic here if needed
-    console.log('Selected suggestion:', suggestion);
-  };
+      // Handle suggestion selection
+      const handleSuggestionSelect = (suggestion) => {
+        setSearchQuery(suggestion.title);
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+        
+        // Open PDF in new tab if it's a publication with a link
+        if (suggestion.type === 'publication' && suggestion.link) {
+          const pdfUrl = suggestion.link.endsWith('/') 
+            ? `${suggestion.link}pdf` 
+            : `${suggestion.link}/pdf`;
+          window.open(pdfUrl, '_blank');
+        }
+      };
 
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
@@ -176,9 +182,17 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
                         <p className="text-sm font-medium text-gray-900 truncate">
                           {suggestion.title}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          Publication
-                        </p>
+                        <div className="flex items-center space-x-2">
+                          <p className="text-xs text-gray-500">
+                            Publication
+                          </p>
+                          <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-xs text-red-500 font-medium">
+                            Click to open PDF
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
