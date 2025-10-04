@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import searchService from '../services/searchService';
 import PDFViewer from './PDFViewer';
@@ -126,14 +127,16 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
       <div className="flex items-center justify-between h-full px-6">
         {/* Left: Small Logo */}
         <div className="flex items-center space-x-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
-            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="hidden lg:block">
-            <h1 className="text-lg font-semibold text-gray-900">NASA Bioscience</h1>
-          </div>
+          <Link to="/" className="flex items-center space-x-3 group" aria-label="Go to dashboard">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm group-hover:opacity-90 transition-opacity">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5.5a1 1 0 10-2 0V12a1 1 0 00.293.707l3 3a1 1 0 101.414-1.414L13 11.586V7.5z" />
+              </svg>
+            </div>
+            <div className="hidden lg:block">
+              <h1 className="text-lg font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">NASA Bioscience</h1>
+            </div>
+          </Link>
         </div>
 
         {/* Center/Left: Global Search Input */}

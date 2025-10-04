@@ -13,6 +13,9 @@ function resolveCsvPath(filePath) {
   }
 
   const candidates = [
+    path.join(__dirname, '..', 'Data', 'papers_keywords2.csv'),
+    path.join(__dirname, '..', 'data', 'papers_keywords2.csv'),
+    path.join(__dirname, 'data', 'papers_keywords2.csv'),
     path.join(__dirname, '..', 'Data', 'papers_keywords1.csv'),
     path.join(__dirname, '..', 'data', 'papers_keywords1.csv'),
     path.join(__dirname, 'data', 'papers_keywords1.csv'),
@@ -58,6 +61,16 @@ const loadPublications = (filePath) => {
   });
 };
 
+// Helper: parse a publication record's keywords into an array (supports v2 delimiters)
+function parseKeywordsFromPublication(pub) {
+  const raw = (pub.keywords || pub.Keywords || '').trim();
+  if (!raw) return [];
+  return raw
+    .split(/[;,|]/)
+    .map(k => k.trim())
+    .filter(k => k.length > 0);
+}
+
 
 /**
  * Get publications with title, link (url), and keywords fields
@@ -85,16 +98,7 @@ const getUniqueKeywords = () => {
   const keywordsSet = new Set();
   
   publications.forEach(pub => {
-    const keywords = pub.keywords || pub.Keywords || '';
-    if (keywords && keywords.trim()) {
-      // Split by comma and clean up
-      keywords.split(',').forEach(kw => {
-        const cleaned = kw.trim();
-        if (cleaned) {
-          keywordsSet.add(cleaned);
-        }
-      });
-    }
+    parseKeywordsFromPublication(pub).forEach(kw => keywordsSet.add(kw));
   });
 
   // Convert to array and sort alphabetically

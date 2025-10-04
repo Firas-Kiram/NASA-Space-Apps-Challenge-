@@ -51,6 +51,46 @@ app.get('/api/keywords', async (req, res) => {
 });
 
 /**
+ * GET /api/publications/by-keywords
+ * Query params:
+ *  - keywords: comma/semicolon/pipe separated list of keywords
+ *  - mode: 'any' (default) or 'all' for matching
+ */
+app.get('/api/publications/by-keywords', async (req, res) => {
+  try {
+    const raw = (req.query.keywords || '').toString();
+    const mode = (req.query.mode || 'any').toString();
+    const list = raw
+      .split(/[;,|]/)
+      .map(k => k.trim())
+      .filter(Boolean);
+
+    if (list.length === 0) {
+      return res.json(publicationService.getPublications());
+    }
+
+    // Use service matcher if present; otherwise simple filter
+    const svc = publicationService;
+    const results = (svc.getPublicationsByKeywords
+      ? svc.getPublicationsByKeywords(list, mode)
+      : svc.getPublications().filter(pub => {
+          const pubKeywords = (pub.keywords || '').split(/[;,|]/).map(k => k.trim().toLowerCase()).filter(Boolean);
+          if (pubKeywords.length === 0) return false;
+          const targets = list.map(k => k.toLowerCase());
+          if (mode === 'all') {
+            return targets.every(k => pubKeywords.includes(k));
+          }
+          return targets.some(k => pubKeywords.includes(k));
+        }));
+
+    res.json(results);
+  } catch (err) {
+    console.error('GET /api/publications/by-keywords error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * GET /api/download-pdf
  * Downloads PDF from PMC and saves it locally, then returns the local path
  */
