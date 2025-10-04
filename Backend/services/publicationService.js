@@ -13,14 +13,24 @@ function resolveCsvPath(filePath) {
   }
 
   const candidates = [
+    // Prefer v0 dataset first (has publication_date and authors)
+    path.join(__dirname, '..', '..', 'papers_keywords0.csv'),
+    path.join(__dirname, '..', 'Data', 'papers_keywords0.csv'),
+    path.join(__dirname, '..', 'data', 'papers_keywords0.csv'),
+    // Then v2 dataset
+    path.join(__dirname, '..', '..', 'papers_keywords2.csv'),
     path.join(__dirname, '..', 'Data', 'papers_keywords2.csv'),
     path.join(__dirname, '..', 'data', 'papers_keywords2.csv'),
     path.join(__dirname, 'data', 'papers_keywords2.csv'),
+    // Fallback to v1
+    path.join(__dirname, '..', '..', 'papers_keywords1.csv'),
     path.join(__dirname, '..', 'Data', 'papers_keywords1.csv'),
     path.join(__dirname, '..', 'data', 'papers_keywords1.csv'),
     path.join(__dirname, 'data', 'papers_keywords1.csv'),
   ];
 
+
+  
   return candidates.find(p => fs.existsSync(p)) || candidates[0];
 }
 
@@ -73,8 +83,10 @@ function parseKeywordsFromPublication(pub) {
 
 
 /**
- * Get publications with title, link (url), and keywords fields
- * @returns {Array} Array of publications with title, link, and keywords
+ * Get publications with title, link (url), keywords, date, and authors fields
+ * - date is sourced from CSV columns: publication_date | date | Date (if present)
+ * - authors is sourced from CSV columns: authors | Authors (if present)
+ * @returns {Array} Array of publications with title, link, keywords, date, authors
  */
 const getPublications = () => {
   // if no loaded data, return empty array
@@ -84,7 +96,9 @@ const getPublications = () => {
   return publications.map(pub => ({
     title: pub.title || pub.Title || '',
     link: pub.url || pub.link || pub.Link || '',
-    keywords: pub.keywords || pub.Keywords || ''
+    keywords: pub.keywords || pub.Keywords || '',
+    date: pub.publication_date || pub.date || pub.Date || '',
+    authors: pub.authors || pub.Authors || ''
   }));
 };
 

@@ -23,8 +23,8 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 
 /**
  * GET /api/publications
- * - returns all publications with title, link, and keywords
- * - loads data from papers_keywords1.csv file
+ * - returns all publications with title, link, keywords, date, and authors
+ * - loads data from papers_keywords0.csv (preferred) or papers_keywords2.csv (fallback to papers_keywords1.csv)
  */
 app.get('/api/publications', async (req, res) => {
   try {
@@ -185,6 +185,6 @@ app.listen(PORT, () => {
     .then(() => console.log('Initial CSV load complete.'))
     .catch(err => {
       console.error('Initial CSV load failed:', err.message);
-      console.error('Make sure file exists in Data/ or data/ folder and is named papers_keywords1.csv');
+      console.error('Ensure dataset CSV exists: papers_keywords2.csv or papers_keywords0.csv (fallback: papers_keywords1.csv) in project root or Backend/Data|data');
     });
 });
