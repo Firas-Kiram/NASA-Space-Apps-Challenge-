@@ -6,10 +6,7 @@ const csv = require('csv-parser');
 let publications = [];
 let loadedFilePath = null;
 
-/**
- * Resolve CSV path: prefer Data/ then data/ folders, and accept an explicit filePath.
- * Now uses papers_keywords1.csv as the primary data source.
- */
+
 function resolveCsvPath(filePath) {
   if (filePath) {
     return path.resolve(filePath);
@@ -78,9 +75,36 @@ const getPublications = () => {
   }));
 };
 
+/**
+ * Get all unique keywords from publications
+ * @returns {Array} Array of unique keywords sorted alphabetically
+ */
+const getUniqueKeywords = () => {
+  if (!publications || publications.length === 0) return [];
+
+  const keywordsSet = new Set();
+  
+  publications.forEach(pub => {
+    const keywords = pub.keywords || pub.Keywords || '';
+    if (keywords && keywords.trim()) {
+      // Split by comma and clean up
+      keywords.split(',').forEach(kw => {
+        const cleaned = kw.trim();
+        if (cleaned) {
+          keywordsSet.add(cleaned);
+        }
+      });
+    }
+  });
+
+  // Convert to array and sort alphabetically
+  return Array.from(keywordsSet).sort((a, b) => a.localeCompare(b));
+};
+
 module.exports = {
   loadPublications,
   getPublications,
+  getUniqueKeywords,
   // expose for debugging
   __internal: { publications, getLoadedFilePath: () => loadedFilePath }
 };

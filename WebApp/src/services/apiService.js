@@ -29,6 +29,20 @@ class ApiService {
       throw error;
     }
   }
+
+  async fetchKeywords() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/keywords`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching keywords:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ApiService();

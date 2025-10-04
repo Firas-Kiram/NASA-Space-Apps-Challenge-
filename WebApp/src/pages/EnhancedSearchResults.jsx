@@ -33,8 +33,8 @@ const EnhancedSearchResults = () => {
         const transformedData = dataService.transformPublicationsForSearch(dataService.publications);
         setSearchResults(transformedData);
         
-        // Get all unique keywords for filtering
-        const keywords = dataService.getAllKeywords();
+        // Get unique keywords from the API endpoint
+        const keywords = await dataService.getUniqueKeywords();
         setAvailableKeywords(keywords);
         
         setError(null);
@@ -102,7 +102,7 @@ const EnhancedSearchResults = () => {
 
       return true;
     });
-  }, [searchQuery, filters]);
+  }, [searchResults, searchQuery, filters]);
 
   // Context panel data
   const contextItem = selectedItem ? {

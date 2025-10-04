@@ -1,60 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import dataService from '../services/dataService';
 
 const CompareExperiments = () => {
   const [selectedExperiments, setSelectedExperiments] = useState([]);
+  const [experiments, setExperiments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Mock experiment data
-  const experiments = [
-    {
-      id: 1,
-      title: "Microgravity Plant Growth Study",
-      type: "In-flight",
-      duration: "6 months",
-      subjects: "Arabidopsis thaliana",
-      location: "ISS",
-      year: 2024,
-      status: "Completed",
-      results: "15% reduction in cellulose content",
-      methodology: "Controlled growth chambers",
-      sampleSize: 120,
-      funding: "$2.3M",
-      publications: 3,
-      citations: 45
-    },
-    {
-      id: 2,
-      title: "Ground-based Gravity Simulation",
-      type: "Ground-based",
-      duration: "3 months",
-      subjects: "Arabidopsis thaliana",
-      location: "NASA Ames",
-      year: 2023,
-      status: "Completed",
-      results: "8% reduction in cellulose content",
-      methodology: "Centrifuge simulation",
-      sampleSize: 200,
-      funding: "$1.1M",
-      publications: 2,
-      citations: 23
-    },
-    {
-      id: 3,
-      title: "Mars Soil Interaction Study",
-      type: "Simulation",
-      duration: "4 months",
-      subjects: "Multiple species",
-      location: "NASA JPL",
-      year: 2024,
-      status: "Ongoing",
-      results: "Preliminary data available",
-      methodology: "Martian regolith simulant",
-      sampleSize: 80,
-      funding: "$1.8M",
-      publications: 1,
-      citations: 12
-    }
-  ];
+  const mapPlatformToType = (platform) => {
+    if (!platform) return 'N/A';
+    const p = String(platform).toLowerCase();
+    if (p.includes('iss') || p.includes('space station')) return 'In-flight';
+    if (p.includes('ground')) return 'Ground-based';
+    if (p.includes('parabolic') || p.includes('sounding')) return 'Simulation';
+    return 'N/A';
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        await dataService.loadPublications();
+        const transformed = dataService.transformPublicationsForSearch(dataService.publications);
+        const mapped = transformed.map(pub => ({
+          id: pub.pub_id,
+          title: pub.title || 'N/A',
+          type: mapPlatformToType(pub.platform),
+          duration: 'N/A',
+          subjects: pub.organism || 'N/A',
+          location: pub.platform || 'N/A',
+          year: pub.year || 'N/A',
+          status: 'N/A',
+          methodology: 'N/A',
+          sampleSize: 'N/A',
+          funding: 'N/A',
+          results: pub.summary || 'N/A',
+          publications: 'N/A',
+          citations: typeof pub.citations === 'number' ? pub.citations : 'N/A'
+        }));
+        setExperiments(mapped);
+        setError(null);
+      } catch (e) {
+        setError('Failed to load experiments');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const comparisonFields = [
     { key: 'title', label: 'Experiment Title', type: 'text' },
@@ -81,7 +76,9 @@ const CompareExperiments = () => {
   };
 
   const getFieldValue = (experiment, field) => {
-    return experiment[field.key];
+    const value = experiment[field.key];
+    if (value === undefined || value === null || value === '') return 'N/A';
+    return value;
   };
 
   const getFieldDifferences = (field) => {
@@ -115,7 +112,8 @@ const CompareExperiments = () => {
             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
               value === 'In-flight' ? 'bg-purple-100 text-purple-800' :
               value === 'Ground-based' ? 'bg-blue-100 text-blue-800' :
-              'bg-green-100 text-green-800'
+              value === 'Simulation' ? 'bg-green-100 text-green-800' :
+              'bg-gray-100 text-gray-700'
             }`}>
               {value}
             </span>
@@ -136,19 +134,23 @@ const CompareExperiments = () => {
       case 'highlight':
         return (
           <div className={baseClasses}>
-            <span className="text-sm font-medium text-gray-900">{value}</span>
+            <span className="text-sm font-medium text-gray-900 block truncate" title={String(value)}>{value}</span>
           </div>
         );
       case 'number':
         return (
           <div className={baseClasses}>
-            <span className="text-sm font-semibold text-purple-600">{value}</span>
+            {value === 'N/A' ? (
+              <span className="text-sm text-gray-600">N/A</span>
+            ) : (
+              <span className="text-sm font-semibold text-purple-600 block truncate" title={String(value)}>{value}</span>
+            )}
           </div>
         );
       default:
         return (
           <div className={baseClasses}>
-            <span className="text-sm text-gray-900">{value}</span>
+            <span className="text-sm text-gray-900 block truncate" title={String(value)}>{value}</span>
           </div>
         );
     }
@@ -168,23 +170,45 @@ const CompareExperiments = () => {
           </button>
         </div>
 
+        {/* Loading / Error */}
+        {loading && (
+          <div className="bg-white rounded-2xl p-6 shadow-md text-center">Loading experiments...</div>
+        )}
+        {error && (
+          <div className="bg-white rounded-2xl p-6 shadow-md text-center text-red-600">{error}</div>
+        )}
+
         {/* Experiment Selection */}
-        {selectedExperiments.length < 3 && (
+        {!loading && !error && selectedExperiments.length < 3 && (
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Experiments to Compare</h2>
+            <div className="mb-4">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search publications..."
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {experiments.filter(exp => !selectedExperiments.find(sel => sel.id === exp.id)).map((experiment) => (
+              {experiments
+                .filter(exp => !selectedExperiments.find(sel => sel.id === exp.id))
+                .filter(exp => !searchQuery || exp.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                .slice(0, 6)
+                .map((experiment) => (
                 <div 
                   key={experiment.id}
                   onClick={() => handleExperimentSelect(experiment)}
                   className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-colors"
                 >
-                  <h3 className="font-medium text-gray-900 mb-2">{experiment.title}</h3>
+                  <h3 className="font-medium text-gray-900 mb-2 truncate" title={experiment.title}>{experiment.title}</h3>
                   <div className="flex items-center space-x-2 mb-2">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                       experiment.type === 'In-flight' ? 'bg-purple-100 text-purple-800' :
                       experiment.type === 'Ground-based' ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
+                      experiment.type === 'Simulation' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-700'
                     }`}>
                       {experiment.type}
                     </span>
@@ -193,6 +217,12 @@ const CompareExperiments = () => {
                   <p className="text-sm text-gray-600">{experiment.location}</p>
                 </div>
               ))}
+              {experiments
+                .filter(exp => !selectedExperiments.find(sel => sel.id === exp.id))
+                .filter(exp => !searchQuery || exp.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                .length === 0 && (
+                  <div className="col-span-full text-sm text-gray-500">No matches found.</div>
+                )}
             </div>
           </div>
         )}
@@ -219,17 +249,17 @@ const CompareExperiments = () => {
             </div>
 
             {/* Comparison Grid */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-hidden max-h-[520px] overflow-y-auto">
+              <table className="w-full table-fixed">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
                       Field
                     </th>
                     {selectedExperiments.map((experiment, index) => (
-                      <th key={experiment.id} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th key={experiment.id} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-64">
                         <div className="flex items-center justify-between">
-                          <span>Experiment {index + 1}</span>
+                          <span className="truncate" title={`Experiment ${index + 1}`}>Experiment {index + 1}</span>
                           <button 
                             onClick={() => handleExperimentSelect(experiment)}
                             className="text-red-400 hover:text-red-600"
@@ -248,11 +278,11 @@ const CompareExperiments = () => {
                     const differences = getFieldDifferences(field);
                     return (
                       <tr key={field.key} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-50">
-                          {field.label}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-50 w-48">
+                          <span className="block truncate" title={field.label}>{field.label}</span>
                         </td>
                         {selectedExperiments.map((experiment, index) => (
-                          <td key={experiment.id} className="px-0 py-0 whitespace-nowrap text-sm text-gray-900">
+                          <td key={experiment.id} className="px-0 py-0 whitespace-nowrap text-sm text-gray-900 w-64">
                             {renderFieldValue(experiment, field, differences[index])}
                           </td>
                         ))}

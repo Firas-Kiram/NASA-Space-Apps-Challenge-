@@ -37,6 +37,20 @@ app.get('/api/publications', async (req, res) => {
 });
 
 /**
+ * GET /api/keywords
+ * - returns all unique keywords from publications
+ */
+app.get('/api/keywords', async (req, res) => {
+  try {
+    const keywords = publicationService.getUniqueKeywords();
+    res.json(keywords);
+  } catch (err) {
+    console.error('GET /api/keywords error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * GET /api/download-pdf
  * Downloads PDF from PMC and saves it locally, then returns the local path
  */

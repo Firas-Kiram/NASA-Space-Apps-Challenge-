@@ -257,6 +257,26 @@ class DataService {
       .sort((a, b) => b.count - a.count)
       .slice(0, 7); // Top 7 areas
   }
+
+  // Get unique keywords from API
+  async getUniqueKeywords() {
+    try {
+      const keywords = await apiService.fetchKeywords();
+      return keywords;
+    } catch (error) {
+      console.error('Failed to fetch keywords:', error);
+      // Fallback: extract from loaded publications
+      if (this.publications && this.publications.length > 0) {
+        const keywordsSet = new Set();
+        this.publications.forEach(pub => {
+          const tags = this.extractKeywordsAsTags(pub.keywords);
+          tags.forEach(kw => keywordsSet.add(kw));
+        });
+        return Array.from(keywordsSet).sort();
+      }
+      return [];
+    }
+  }
   
   // Get all unique keywords from publications for filtering
   getAllKeywords() {
