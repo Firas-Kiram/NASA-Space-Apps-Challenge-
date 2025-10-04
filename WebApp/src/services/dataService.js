@@ -300,14 +300,13 @@ class DataService {
     const yearData = {};
     
     this.publications.forEach(pub => {
-      const year = this.extractYearFromTitle(pub.title);
+      const year = this.extractYearFromDate(pub.date) || this.extractYearFromTitle(pub.title);
       yearData[year] = (yearData[year] || 0) + 1;
     });
 
     return Object.entries(yearData)
-      .map(([year, count]) => ({ year, count }))
-      .sort((a, b) => a.year - b.year)
-      .slice(-6); // Last 6 years
+      .map(([year, count]) => ({ year: parseInt(year), count }))
+      .sort((a, b) => a.year - b.year);
   }
 }
 

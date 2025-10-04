@@ -138,6 +138,31 @@ app.get('/api/keywords', async (req, res) => {
 });
 
 /**
+ * GET /api/publications/by-year
+ * - aggregates publication counts by year using publication date
+ */
+app.get('/api/publications/by-year', async (req, res) => {
+  try {
+    const pubs = publicationService.getPublications();
+    const counts = {};
+    for (const p of pubs) {
+      const dateStr = (p.date || '').toString();
+      const m = dateStr.match(/\b(19|20)\d{2}\b/);
+      const year = m ? m[0] : null;
+      if (!year) continue;
+      counts[year] = (counts[year] || 0) + 1;
+    }
+    const result = Object.entries(counts)
+      .map(([year, count]) => ({ year: parseInt(year, 10), count }))
+      .sort((a, b) => a.year - b.year);
+    res.json(result);
+  } catch (err) {
+    console.error('GET /api/publications/by-year error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * GET /api/publications/by-keywords
  * Query params:
  *  - keywords: comma/semicolon/pipe separated list of keywords
