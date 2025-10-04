@@ -229,15 +229,29 @@ class DataService {
   // Get KPI data based on loaded publications
   getKPIData() {
     const totalPublications = this.publications.length;
-    
+    // Sum real citations from API (fallback to 0 if missing/invalid)
+    const citationIndex = this.publiclicationsSumCitations();
+
     return {
       totalPublications,
       activeExperiments: Math.floor(totalPublications * 0.21), // ~21% of publications
       researchAreas: 23,
       collaborations: Math.floor(totalPublications * 0.15), // ~15% of publications
       recentPublications: Math.floor(totalPublications * 0.07), // ~7% recent
-      citationIndex: Math.floor(totalPublications * 4.7) // Average 4.7 citations per paper
+      citationIndex
     };
+  }
+
+  // Helper: sum citations across publications
+  publiclicationsSumCitations() {
+    try {
+      return this.publications.reduce((sum, p) => {
+        const val = (typeof p.citations === 'number') ? p.citations : parseFloat(p.citations);
+        return sum + (Number.isFinite(val) ? val : 0);
+      }, 0);
+    } catch {
+      return 0;
+    }
   }
 
   // Get research areas data based on loaded publications
