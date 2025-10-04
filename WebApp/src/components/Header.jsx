@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import searchService from '../services/searchService';
+import PDFViewer from './PDFViewer';
 
 const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -10,6 +11,8 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
+  const [showPDFViewer, setShowPDFViewer] = useState(false);
+  const [selectedPDF, setSelectedPDF] = useState(null);
   const searchRef = useRef(null);
   const suggestionsRef = useRef(null);
   const { logout, user } = useAuth();
@@ -55,13 +58,20 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
         setShowSuggestions(false);
         setSelectedIndex(-1);
         
-        // Open PDF in new tab if it's a publication with a link
+        // Open PDF in modal viewer if it's a publication with a link
         if (suggestion.type === 'publication' && suggestion.link) {
-          const pdfUrl = suggestion.link.endsWith('/') 
-            ? `${suggestion.link}pdf` 
-            : `${suggestion.link}/pdf`;
-          window.open(pdfUrl, '_blank');
+          setSelectedPDF({
+            url: suggestion.link,
+            title: suggestion.title
+          });
+          setShowPDFViewer(true);
         }
+      };
+
+      // Handle closing the PDF viewer
+      const handleClosePDFViewer = () => {
+        setShowPDFViewer(false);
+        setSelectedPDF(null);
       };
 
   // Handle keyboard navigation
@@ -111,6 +121,7 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
   }, []);
 
   return (
+    <>
     <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 h-18">
       <div className="flex items-center justify-between h-full px-6">
         {/* Left: Small Logo */}
@@ -190,7 +201,7 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
                             <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                           </svg>
                           <p className="text-xs text-red-500 font-medium">
-                            Click to open PDF
+                            Click to view PDF
                           </p>
                         </div>
                       </div>
@@ -317,6 +328,16 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
         </div>
       </div>
     </header>
+
+    {/* PDF Viewer Modal */}
+    {showPDFViewer && selectedPDF && (
+      <PDFViewer
+        pdfUrl={selectedPDF.url}
+        title={selectedPDF.title}
+        onClose={handleClosePDFViewer}
+      />
+    )}
+    </>
   );
 };
 

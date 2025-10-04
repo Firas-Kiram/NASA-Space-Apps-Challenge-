@@ -8,6 +8,7 @@ let loadedFilePath = null;
 
 /**
  * Resolve CSV path: prefer Data/ then data/ folders, and accept an explicit filePath.
+ * Now uses papers_keywords1.csv as the primary data source.
  */
 function resolveCsvPath(filePath) {
   if (filePath) {
@@ -15,9 +16,9 @@ function resolveCsvPath(filePath) {
   }
 
   const candidates = [
-    path.join(__dirname, '..', 'Data', 'SB_publication_PMC.csv'),
-    path.join(__dirname, '..', 'data', 'SB_publication_PMC.csv'),
-    path.join(__dirname, 'data', 'SB_publication_PMC.csv'),
+    path.join(__dirname, '..', 'Data', 'papers_keywords1.csv'),
+    path.join(__dirname, '..', 'data', 'papers_keywords1.csv'),
+    path.join(__dirname, 'data', 'papers_keywords1.csv'),
   ];
 
   return candidates.find(p => fs.existsSync(p)) || candidates[0];
@@ -62,17 +63,18 @@ const loadPublications = (filePath) => {
 
 
 /**
- * Get publications with only title and link fields
- * @returns {Array} Array of publications with title and link only
+ * Get publications with title, link (url), and keywords fields
+ * @returns {Array} Array of publications with title, link, and keywords
  */
 const getPublications = () => {
   // if no loaded data, return empty array
   if (!publications || publications.length === 0) return [];
 
-  // return only title and link fields
+  // return title, link (url), and keywords fields
   return publications.map(pub => ({
-    title: pub.Title || pub.title || '',
-    link: pub.Link || pub.link || ''
+    title: pub.title || pub.Title || '',
+    link: pub.url || pub.link || pub.Link || '',
+    keywords: pub.keywords || pub.Keywords || ''
   }));
 };
 
