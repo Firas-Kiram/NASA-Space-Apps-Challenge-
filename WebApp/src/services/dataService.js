@@ -35,7 +35,9 @@ class DataService {
       summary: this.generateSummary(pub.title),
       extendedSummary: this.generateExtendedSummary(pub.title),
       confidence: this.calculateConfidence(pub.title),
-      citations: this.estimateCitations(pub.title),
+      citations: (typeof pub.citations === 'number' && !Number.isNaN(pub.citations))
+        ? pub.citations
+        : this.estimateCitations(pub.title),
       authors: this.parseAuthorsString(pub.authors),
       journal: this.extractJournal(pub.title),
       link: pub.link,

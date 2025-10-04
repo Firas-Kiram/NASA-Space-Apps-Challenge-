@@ -5,6 +5,7 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const csv = require('csv-parser');
 const publicationService = require('./services/publicationService');
 
 const app = express();
@@ -22,6 +23,87 @@ if (!fs.existsSync(PDF_DIR)) {
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
+// Citations index loaded from papers_with_citations.csv (one-time at startup)
+const citationsIndex = {
+  byUrl: new Map(),
+  byPmcId: new Map(),
+  byTitle: new Map()
+};
+
+function resolveCitationsCsvPath(filePath) {
+  if (filePath) return path.resolve(filePath);
+  const candidates = [
+    path.join(__dirname, '..', 'papers_with_citations.csv'),
+    path.join(__dirname, 'Data', 'papers_with_citations.csv'),
+    path.join(__dirname, 'data', 'papers_with_citations.csv'),
+    path.join(__dirname, '..', '..', 'papers_with_citations.csv')
+  ];
+  return candidates.find(p => fs.existsSync(p)) || candidates[0];
+}
+
+function loadCitationsOnce(filePath) {
+  return new Promise((resolve) => {
+    const csvPath = resolveCitationsCsvPath(filePath);
+    if (!csvPath || !fs.existsSync(csvPath)) {
+      console.warn('Citations CSV not found. Proceeding without citations.');
+      return resolve();
+    }
+    citationsIndex.byUrl.clear();
+    citationsIndex.byPmcId.clear();
+    citationsIndex.byTitle.clear();
+
+    fs.createReadStream(csvPath)
+      .pipe(csv())
+      .on('data', (row) => {
+        try {
+          const title = String(row.title || row.Title || '').trim();
+          const url = String(row.url || row.link || row.Link || '').trim();
+          const citationsRaw = row.citations != null ? String(row.citations).trim() : '';
+          const val = parseFloat(citationsRaw);
+          if (Number.isNaN(val)) return;
+          if (url) {
+            const norm = url.replace(/\/$/, '').toLowerCase();
+            citationsIndex.byUrl.set(norm, val);
+            const pmc = norm.match(/PMC\d+/i);
+            if (pmc) citationsIndex.byPmcId.set(pmc[0].toUpperCase(), val);
+          }
+          if (title) citationsIndex.byTitle.set(title.toLowerCase(), val);
+        } catch {}
+      })
+      .on('end', () => {
+        console.log(`Citations loaded — url=${citationsIndex.byUrl.size}, pmc=${citationsIndex.byPmcId.size}, title=${citationsIndex.byTitle.size}`);
+        resolve();
+      })
+      .on('error', () => resolve());
+  });
+}
+
+function lookupCitations(pub) {
+  const rawUrl = (pub.link || '').trim();
+  if (rawUrl) {
+    const norm = rawUrl.replace(/\/$/, '').toLowerCase();
+    const viaUrl = citationsIndex.byUrl.get(norm);
+    if (typeof viaUrl === 'number' && !Number.isNaN(viaUrl)) return viaUrl;
+    try {
+      const u = new URL(norm);
+      const base = `${u.origin}${u.pathname}`.replace(/\/$/, '').toLowerCase();
+      const viaBase = citationsIndex.byUrl.get(base);
+      if (typeof viaBase === 'number' && !Number.isNaN(viaBase)) return viaBase;
+    } catch {}
+    const pmc = norm.match(/PMC\d+/i);
+    if (pmc) {
+      const viaPmc = citationsIndex.byPmcId.get(pmc[0].toUpperCase());
+      if (typeof viaPmc === 'number' && !Number.isNaN(viaPmc)) return viaPmc;
+    }
+  }
+  const title = (pub.title || '').trim().toLowerCase();
+  if (title) {
+    const viaTitle = citationsIndex.byTitle.get(title);
+    if (typeof viaTitle === 'number' && !Number.isNaN(viaTitle)) return viaTitle;
+  }
+  return undefined;
+}
+
 /**
  * GET /api/publications
  * - returns all publications with title, link, keywords, date, and authors
@@ -30,7 +112,11 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 app.get('/api/publications', async (req, res) => {
   try {
     const data = publicationService.getPublications();
-    res.json(data);
+    const merged = data.map(p => {
+      const citations = lookupCitations(p);
+      return citations != null ? { ...p, citations } : { ...p };
+    });
+    res.json(merged);
   } catch (err) {
     console.error('GET /api/publications error:', err);
     res.status(500).json({ error: err.message });
@@ -324,6 +410,7 @@ app.listen(PORT, () => {
 
   // initial load (non-blocking)
   publicationService.loadPublications()
+    .then(() => loadCitationsOnce())
     .then(() => console.log('Initial CSV load complete.'))
     .catch(err => {
       console.error('Initial CSV load failed:', err.message);
