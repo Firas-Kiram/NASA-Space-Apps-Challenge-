@@ -76,17 +76,9 @@ const ResultCard = ({ publication, onSelect, isSelected, onCompare, onSave }) =>
         )}
       </div>
 
-      {/* Confidence indicator */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <span className="text-xs text-gray-600">Confidence:</span>
-          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${confidenceColor(publication.confidence)}`}>
-            {Math.round(publication.confidence * 100)}%
-          </span>
-        </div>
-        <div className="text-xs text-gray-500">
-          ID: {publication.pub_id}
-        </div>
+      {/* ID row (confidence removed) */}
+      <div className="flex items-center justify-end mb-4">
+        <div className="text-xs text-gray-500">ID: {publication.pub_id}</div>
       </div>
 
       {/* Footer: Quick action buttons */}
