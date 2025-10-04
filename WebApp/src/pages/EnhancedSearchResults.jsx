@@ -15,6 +15,7 @@ const EnhancedSearchResults = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [availableKeywords, setAvailableKeywords] = useState([]);
   const [filters, setFilters] = useState({
     organisms: [],
     platforms: [],
@@ -31,6 +32,11 @@ const EnhancedSearchResults = () => {
         await dataService.loadPublications();
         const transformedData = dataService.transformPublicationsForSearch(dataService.publications);
         setSearchResults(transformedData);
+        
+        // Get all unique keywords for filtering
+        const keywords = dataService.getAllKeywords();
+        setAvailableKeywords(keywords);
+        
         setError(null);
       } catch (err) {
         console.error('Error loading publications:', err);
@@ -214,6 +220,7 @@ const EnhancedSearchResults = () => {
             <FiltersPanel 
               filters={filters}
               onFilterChange={setFilters}
+              availableKeywords={availableKeywords}
             />
           </div>
 
@@ -235,6 +242,7 @@ const EnhancedSearchResults = () => {
           onClose={() => setIsMobileFiltersOpen(false)}
           filters={filters}
           onFilterChange={setFilters}
+          availableKeywords={availableKeywords}
         />
 
         {/* Action Summary Bar */}

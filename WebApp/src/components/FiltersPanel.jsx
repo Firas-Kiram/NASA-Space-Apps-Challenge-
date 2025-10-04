@@ -1,7 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { filterOptions } from '../data/searchData';
 
-const FiltersPanel = ({ filters, onFilterChange }) => {
+const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [] }) => {
+  const [keywordSearchQuery, setKeywordSearchQuery] = useState('');
+  
+  // Filter keywords based on search query
+  const filteredKeywords = keywordSearchQuery
+    ? availableKeywords.filter(kw => kw.toLowerCase().includes(keywordSearchQuery.toLowerCase()))
+    : availableKeywords;
+  
+  // Show top 20 keywords or all filtered keywords
+  const displayKeywords = filteredKeywords.slice(0, 20);
   const handleOrganismChange = (organism) => {
     const newOrganisms = filters.organisms.includes(organism)
       ? filters.organisms.filter(o => o !== organism)
@@ -128,22 +137,70 @@ const FiltersPanel = ({ filters, onFilterChange }) => {
         </div>
       </div>
 
-      {/* Tags Filter */}
+      {/* Keywords Filter */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Research Tags</h4>
-        <div className="space-y-2">
-          {filterOptions.tags.map((tag) => (
-            <label key={tag} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.tags.includes(tag)}
-                onChange={() => handleTagChange(tag)}
-                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
-              />
-              <span className="ml-2 text-sm text-gray-700">{tag}</span>
-            </label>
-          ))}
+        <h4 className="text-sm font-medium text-gray-900 mb-3">Keywords</h4>
+        
+        {/* Keyword Search Box */}
+        {availableKeywords.length > 20 && (
+          <div className="mb-3">
+            <input
+              type="text"
+              placeholder="Search keywords..."
+              value={keywordSearchQuery}
+              onChange={(e) => setKeywordSearchQuery(e.target.value)}
+              className="w-full text-sm border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 px-3 py-2"
+            />
+          </div>
+        )}
+        
+        {/* Selected Keywords Display */}
+        {filters.tags.length > 0 && (
+          <div className="mb-3 p-2 bg-purple-50 rounded-lg">
+            <div className="text-xs font-medium text-purple-900 mb-1">Selected ({filters.tags.length}):</div>
+            <div className="flex flex-wrap gap-1">
+              {filters.tags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => handleTagChange(tag)}
+                  className="inline-flex items-center px-2 py-1 rounded text-xs bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors"
+                >
+                  {tag}
+                  <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Available Keywords List */}
+        <div className="max-h-64 overflow-y-auto space-y-2">
+          {displayKeywords.length > 0 ? (
+            displayKeywords.map((tag) => (
+              <label key={tag} className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.tags.includes(tag)}
+                  onChange={() => handleTagChange(tag)}
+                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
+                />
+                <span className="ml-2 text-sm text-gray-700 line-clamp-1">{tag}</span>
+              </label>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500 italic">
+              {keywordSearchQuery ? 'No keywords match your search' : 'No keywords available'}
+            </p>
+          )}
         </div>
+        
+        {filteredKeywords.length > 20 && (
+          <p className="mt-2 text-xs text-gray-500">
+            Showing {displayKeywords.length} of {filteredKeywords.length} keywords
+          </p>
+        )}
       </div>
 
       {/* Active Filters Summary */}

@@ -122,6 +122,6 @@ export const filterOptions = {
     { label: "High (>0.9)", min: 0.9, max: 1.0 },
     { label: "Medium (0.7-0.9)", min: 0.7, max: 0.9 },
     { label: "Low (<0.7)", min: 0.0, max: 0.7 }
-  ],
-  tags: ["Bone Loss", "Plant Growth", "Cardiovascular", "Mars Simulation", "Radiation", "Exercise", "Sleep", "Crystallization"]
+  ]
+  // tags removed - now dynamically loaded from API endpoint
 };

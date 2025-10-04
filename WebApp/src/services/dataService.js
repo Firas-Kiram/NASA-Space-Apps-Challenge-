@@ -29,7 +29,7 @@ class DataService {
       pub_id: `PUB${String(index + 1).padStart(3, '0')}`,
       title: pub.title,
       year: this.extractYearFromTitle(pub.title),
-      tags: this.extractTagsFromTitle(pub.title),
+      tags: this.extractKeywordsAsTags(pub.keywords), // Use keywords from API as tags
       organism: this.detectOrganism(pub.title),
       platform: this.detectPlatform(pub.title),
       summary: this.generateSummary(pub.title),
@@ -38,11 +38,28 @@ class DataService {
       citations: this.estimateCitations(pub.title),
       authors: this.extractAuthors(pub.title),
       journal: this.extractJournal(pub.title),
-      link: pub.link
+      link: pub.link,
+      keywords: pub.keywords // Keep original keywords string
     }));
   }
 
   // Helper methods for data transformation
+  extractKeywordsAsTags(keywords) {
+    // Parse keywords string into array of tags
+    if (!keywords || keywords.trim() === '') {
+      return ['Space Research'];
+    }
+    
+    // Split by comma and clean up
+    const keywordArray = keywords
+      .split(',')
+      .map(kw => kw.trim())
+      .filter(kw => kw.length > 0)
+      .slice(0, 10); // Limit to first 10 keywords for display
+    
+    return keywordArray.length > 0 ? keywordArray : ['Space Research'];
+  }
+
   extractYearFromTitle(title) {
     const yearMatch = title.match(/\b(20\d{2})\b/);
     return yearMatch ? parseInt(yearMatch[1]) : 2023;
@@ -223,7 +240,7 @@ class DataService {
     const areas = {};
     
     this.publications.forEach(pub => {
-      const tags = this.extractTagsFromTitle(pub.title);
+      const tags = this.extractKeywordsAsTags(pub.keywords);
       tags.forEach(tag => {
         areas[tag] = (areas[tag] || 0) + 1;
       });
@@ -239,6 +256,18 @@ class DataService {
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 7); // Top 7 areas
+  }
+  
+  // Get all unique keywords from publications for filtering
+  getAllKeywords() {
+    const keywordSet = new Set();
+    
+    this.publications.forEach(pub => {
+      const tags = this.extractKeywordsAsTags(pub.keywords);
+      tags.forEach(tag => keywordSet.add(tag));
+    });
+    
+    return Array.from(keywordSet).sort();
   }
 
   // Get publications by year data

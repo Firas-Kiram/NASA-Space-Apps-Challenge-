@@ -1,7 +1,7 @@
 import React from 'react';
 import FiltersPanel from './FiltersPanel';
 
-const MobileFiltersModal = ({ isOpen, onClose, filters, onFilterChange }) => {
+const MobileFiltersModal = ({ isOpen, onClose, filters, onFilterChange, availableKeywords = [] }) => {
   if (!isOpen) return null;
 
   return (
@@ -32,6 +32,7 @@ const MobileFiltersModal = ({ isOpen, onClose, filters, onFilterChange }) => {
           <FiltersPanel 
             filters={filters}
             onFilterChange={onFilterChange}
+            availableKeywords={availableKeywords}
           />
         </div>
         
