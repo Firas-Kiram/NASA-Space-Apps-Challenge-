@@ -28,7 +28,7 @@ class DataService {
     return publications.map((pub, index) => ({
       pub_id: `PUB${String(index + 1).padStart(3, '0')}`,
       title: pub.title,
-      year: this.extractYearFromTitle(pub.title),
+      year: this.extractYearFromDate(pub.date) || this.extractYearFromTitle(pub.title),
       tags: this.extractKeywordsAsTags(pub.keywords), // Use keywords from API as tags
       organism: this.detectOrganism(pub.title),
       platform: this.detectPlatform(pub.title),
@@ -36,10 +36,11 @@ class DataService {
       extendedSummary: this.generateExtendedSummary(pub.title),
       confidence: this.calculateConfidence(pub.title),
       citations: this.estimateCitations(pub.title),
-      authors: this.extractAuthors(pub.title),
+      authors: this.parseAuthorsString(pub.authors),
       journal: this.extractJournal(pub.title),
       link: pub.link,
-      keywords: pub.keywords // Keep original keywords string
+      keywords: pub.keywords, // Keep original keywords string
+      date: pub.date || ''
     }));
   }
 
@@ -63,6 +64,13 @@ class DataService {
   extractYearFromTitle(title) {
     const yearMatch = title.match(/\b(20\d{2})\b/);
     return yearMatch ? parseInt(yearMatch[1]) : 2023;
+  }
+
+  extractYearFromDate(dateStr) {
+    if (!dateStr) return null;
+    // Expect formats like "2014 Aug 18" or "2021 Mar 4"; fallback: first 4-digit year
+    const yearMatch = dateStr.match(/\b(19|20)\d{2}\b/);
+    return yearMatch ? parseInt(yearMatch[0]) : null;
   }
 
   extractTagsFromTitle(title) {
@@ -196,18 +204,13 @@ class DataService {
     return citations;
   }
 
-  extractAuthors(title) {
-    // Extract potential author names from title (simplified)
-    const commonAuthors = [
-      'Dr. Sarah Johnson', 'Dr. Michael Chen', 'Dr. Lisa Park', 'Dr. James Wilson',
-      'Dr. Robert Kim', 'Dr. Amanda Foster', 'Dr. Maria Gonzalez', 'Dr. David Lee',
-      'Dr. Kevin Zhang', 'Dr. Rachel Adams', 'Dr. Thomas Brown', 'Dr. Jennifer White'
-    ];
-    
-    // Return 1-2 random authors
-    const numAuthors = Math.random() > 0.5 ? 2 : 1;
-    const shuffled = commonAuthors.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, numAuthors);
+  parseAuthorsString(authors) {
+    if (!authors) return [];
+    if (Array.isArray(authors)) return authors;
+    return String(authors)
+      .split(',')
+      .map(a => a.trim())
+      .filter(a => a.length > 0);
   }
 
   extractJournal(title) {
