@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
 
   // Static credentials for the application
   const STATIC_EMAIL = 'researcher@nasa.gov';
-  const STATIC_PASSWORD = 'nasa2024';
+  const STATIC_PASSWORD = 'nasa2025';
 
   useEffect(() => {
     // Check if user is already logged in (from localStorage)

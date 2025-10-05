@@ -7,7 +7,7 @@ import logo from '../images/logo.png';
 const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -15,6 +15,7 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
   const navigate = useNavigate();
   const searchRef = useRef(null);
   const suggestionsRef = useRef(null);
+  const userMenuRef = useRef(null);
   const { logout, user } = useAuth();
 
   // Load publications when component mounts
@@ -102,6 +103,9 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
         setShowSuggestions(false);
         setSelectedIndex(-1);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
       }
     };
 
@@ -211,7 +215,7 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
           </div>
         </div>
 
-        {/* Right: Context Panel Toggle, Notifications, User Avatar, Role Selector */}
+        {/* Right: Context Panel Toggle, Notifications, User Avatar */}
         <div className="flex items-center space-x-3">
           {/* Context Panel Toggle */}
           {showContextToggle && (
@@ -265,55 +269,31 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
             )}
           </div>
 
-          {/* User Avatar */}
-          <div className="w-9 h-9 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
-            <span className="text-sm font-medium text-white">
-              {user ? user.name.charAt(0) : 'U'}
-            </span>
-          </div>
-
-          {/* Role Selector Dropdown */}
-          <div className="relative">
-            <button 
-              onClick={() => setShowRoleSelector(!showRoleSelector)}
-              className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-lg transition-colors"
+        {/* User Avatar with menu */}
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="w-9 h-9 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              aria-haspopup="menu"
+              aria-expanded={showUserMenu}
             >
-              <span className="hidden sm:block">{user ? user.role : 'Researcher'}</span>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <span className="text-sm font-medium text-white">
+                {user ? user.name.charAt(0) : 'U'}
+              </span>
             </button>
-            
-            {/* Role selector dropdown */}
-            {showRoleSelector && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{user ? user.name : 'User'}</p>
-                  <p className="text-xs text-gray-500">{user ? user.email : 'user@nasa.gov'}</p>
-                </div>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                  Researcher
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <button
+                  onClick={logout}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Sign Out
                 </button>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                  Administrator
-                </button>
-                <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                  Analyst
-                </button>
-                <div className="border-t border-gray-100 mt-1 pt-1">
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                    Settings
-                  </button>
-                  <button 
-                    onClick={logout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    Sign Out
-                  </button>
-                </div>
               </div>
             )}
           </div>
+
+          {/* Role selector removed */}
         </div>
       </div>
     </header>
