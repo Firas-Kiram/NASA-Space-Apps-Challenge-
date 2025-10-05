@@ -7,7 +7,6 @@ const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
 const publicationService = require('./services/publicationService');
-const { summarizePapersByTitle } = require('../summarize');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -423,48 +422,6 @@ app.get('/api/download-pdf', async (req, res) => {
  * Serve PDF files from local storage
  */
 app.use('/pdfs', express.static(PDF_DIR));
-
-/**
- * POST /api/summarize
- * Generate AI summary for a paper by title
- * Body: { title: "Paper Title" }
- * Returns: { title, summary }
- */
-app.post('/api/summarize', async (req, res) => {
-  try {
-    const { title } = req.body;
-    if (!title) {
-      return res.status(400).json({ error: 'Title is required' });
-    }
-
-    // Path to rag_chunks.json
-    const ragChunksPath = path.join(__dirname, 'Data', 'rag_chunks.json');
-    
-    // Check if file exists
-    if (!fs.existsSync(ragChunksPath)) {
-      return res.status(404).json({ error: 'RAG chunks data not found' });
-    }
-
-    console.log(`Generating summary for: ${title}`);
-    
-    // Call summarize function with the title
-    const results = await summarizePapersByTitle({
-      titles: [title],
-      jsonFilePath: ragChunksPath,
-      model: 'qwen/qwen3-coder',
-      apiKey: process.env.OPENROUTER_API_KEY
-    });
-
-    if (results && results.length > 0) {
-      res.json(results[0]); // Return { title, summary }
-    } else {
-      res.status(404).json({ error: 'No summary generated' });
-    }
-  } catch (err) {
-    console.error('Summarization error:', err);
-    res.status(500).json({ error: err.message || 'Failed to generate summary' });
-  }
-});
 
 // global error handler (fallback)
 app.use((err, req, res, next) => {

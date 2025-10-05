@@ -37,16 +37,13 @@ function groupByTitle(data) {
 }
 
 function callOpenRouter({ apiKey, model, title, text }) {
-  // Limit text to avoid token limits (approximately 12000 characters = ~3000 tokens)
-  const truncatedText = text.length > 12000 ? text.slice(0, 12000) + '...' : text;
-  
   const payload = JSON.stringify({
     model,
     messages: [
       { role: 'system', content: 'You are a helpful assistant that summarizes scientific papers concisely while preserving key details.' },
-      { role: 'user', content: `Summarize the following scientific paper titled '${title}' , covering the main objectives, methods, results, and conclusions:\n\n${truncatedText}` }
+      { role: 'user', content: `Summarize the following scientific paper titled '${title}' in 3-5 sentences:\n\n${text}` }
     ],
-    max_tokens: 400,
+    max_tokens: 200,
     temperature: 0.3
   });
 
@@ -67,110 +64,51 @@ function callOpenRouter({ apiKey, model, title, text }) {
       res.setEncoding('utf8');
       res.on('data', chunk => (data += chunk));
       res.on('end', () => {
-        console.log(`OpenRouter response status: ${res.statusCode}`);
         if (res.statusCode && res.statusCode >= 400) {
-          console.error(`OpenRouter error: ${data}`);
-          return reject(new Error(`OpenRouter HTTP ${res.statusCode}: ${data.slice(0, 200)}`));
+          return reject(new Error(`OpenRouter HTTP ${res.statusCode}: ${data}`));
         }
         try {
           const parsed = JSON.parse(data);
           const content = parsed.choices && parsed.choices[0] && parsed.choices[0].message && parsed.choices[0].message.content || '';
-          console.log(`OpenRouter returned ${content.length} chars`);
           resolve(content || '');
         } catch (e) {
-          console.error('Failed to parse OpenRouter response:', e.message);
           reject(new Error('Invalid OpenRouter response'));
         }
       });
     });
-    req.on('error', (e) => {
-      console.error('OpenRouter request error:', e.message);
-      reject(e);
-    });
+    req.on('error', reject);
     req.write(payload);
     req.end();
   });
 }
 
-function extractKeyPoints(text, maxPoints = 8) {
-  // Split text into sections and extract key sentences
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 80);
-  const keyPoints = [];
-  
-  // Take representative sentences from different parts of the text
-  const step = Math.max(1, Math.floor(sentences.length / maxPoints));
-  for (let i = 0; i < sentences.length && keyPoints.length < maxPoints; i += step) {
-    const sentence = sentences[i].trim();
-    if (sentence.length > 100 ) {
-      keyPoints.push(sentence);
-    }
-  }
-  
-  // Build summary from key points across all sections
-  return keyPoints.join('. ') + '.';
-}
-
-function stripMarkdown(text) {
-  // Remove markdown formatting
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '$1')  // Bold
-    .replace(/\*(.*?)\*/g, '$1')      // Italic
-    .replace(/#{1,6}\s/g, '')         // Headers
-    .replace(/`(.*?)`/g, '$1')        // Code
-    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Links
-    .replace(/^\s*[-*+]\s/gm, '')     // List bullets
-    .replace(/^\s*\d+\.\s/gm, '')     // Numbered lists
-    .trim();
-}
-
-async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = "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" }) {
-  console.log(`Summarizing: ${title}`);
-  console.log(`Text length: ${text.length} characters`);
-  console.log(`API key present: ${!!apiKey}`);
-  
+async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = process.env.OPENROUTER_API_KEY }) {
   if (!apiKey) {
-    // fallback: extract key points from all sections
-    console.log('⚠️  No API key - extracting key points from all sections');
-    return extractKeyPoints(text, 8);
+    // fallback: return truncated preview
+    return `Summary (local fallback): ${text.slice(0, 1500)}...`;
   }
   try {
     const summary = await callOpenRouter({ apiKey, model, title, text });
-    console.log(`✓ Summary generated (${summary.length} chars)`);
-    // Strip markdown formatting
-    const cleanSummary = stripMarkdown(summary);
-    return cleanSummary || 'No summary generated.';
+    return summary || 'No summary generated.';
   } catch (e) {
-    console.error('OpenRouter error:', e.message);
-    // Fallback to extractive if API fails
-    console.log('⚠️  Falling back to key points extraction');
-    return extractKeyPoints(text, 8);
+    return `Error summarizing '${title}': ${e.message}`;
   }
 }
 
 async function summarizePapersByTitle({ titles, jsonFilePath, model = 'qwen/qwen3-coder', apiKey = process.env.OPENROUTER_API_KEY }) {
   const data = loadJsonData(jsonFilePath);
-  console.log(`Loaded ${data.length} chunks from JSON`);
-  
   const groups = groupByTitle(data);
-  console.log(`Grouped into ${groups.size} unique papers`);
-  
   const results = [];
   for (const rawTitle of titles) {
     const title = String(rawTitle);
     // Use lowercase for case-insensitive lookup
     const titleKey = title.toLowerCase();
     const sections = groups.get(titleKey) || [];
-    
-    console.log(`Found ${sections.length} sections for "${title}"`);
-    
     if (sections.length === 0) {
       results.push({ title, summary: `No data found for '${title}' in the JSON file.` });
       continue;
     }
-    
     const fullText = sections.join('\n\n');
-    console.log(`Combined text length: ${fullText.length} characters from ${sections.length} sections`);
-    
     const summary = await summarizeText({ title, text: fullText, model, apiKey });
     results.push({ title, summary });
   }
