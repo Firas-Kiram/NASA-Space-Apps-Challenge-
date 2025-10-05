@@ -215,7 +215,21 @@ const OverviewDashboard = () => {
           </div>
         </div>
 
-        {/* Research Areas bar chart removed as requested */}
+        {/* Bottom Row: Research Areas Distribution */}
+        <ChartCard
+          title="Research Areas Distribution"
+          subtitle="Publications by research focus and impact"
+          className="h-80"
+        >
+          <div className="h-full">
+            <SimpleBarChart 
+              data={researchAreas} 
+              xKey="name" 
+              yKey="count"
+              color="#7c3aed"
+            />
+          </div>
+        </ChartCard>
       </div>
     </Layout>
   );

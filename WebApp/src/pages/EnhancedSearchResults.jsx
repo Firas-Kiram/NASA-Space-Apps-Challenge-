@@ -34,9 +34,25 @@ const EnhancedSearchResults = () => {
         const transformedData = dataService.transformPublicationsForSearch(dataService.publications);
         setSearchResults(transformedData);
         
-        // Get unique keywords from the API endpoint
-        const keywords = await dataService.getUniqueKeywords();
-        setAvailableKeywords(keywords);
+        // Get cleaned unique keywords from the API endpoint
+        try {
+          const api = (await import('../services/apiService')).default;
+          const keywords = await api.fetchKeywords();
+          setAvailableKeywords(keywords);
+        } catch (e) {
+          console.warn('Failed fetching keywords from API, falling back:', e.message);
+          const keywords = await dataService.getUniqueKeywords();
+          // Client-side cleaning fallback
+          const isValidKeyword = (kw) => {
+            if (!kw) return false;
+            const s = String(kw).trim();
+            if (s.length < 2) return false;
+            if (/[0-9]/.test(s)) return false;
+            if (!/[A-Za-z]/.test(s)) return false;
+            return true;
+          };
+          setAvailableKeywords(Array.from(new Set(keywords.filter(isValidKeyword))).sort((a,b)=>a.localeCompare(b)));
+        }
         
         setError(null);
       } catch (err) {

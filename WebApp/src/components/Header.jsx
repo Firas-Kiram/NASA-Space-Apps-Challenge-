@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import searchService from '../services/searchService';
+import logo from '../images/logo.png';
 
 const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -117,11 +118,7 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
         {/* Left: Small Logo */}
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center space-x-3 group" aria-label="Go to dashboard">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm group-hover:opacity-90 transition-opacity">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5.5a1 1 0 10-2 0V12a1 1 0 00.293.707l3 3a1 1 0 101.414-1.414L13 11.586V7.5z" />
-              </svg>
-            </div>
+            <img src={logo} alt="NASA Bioscience" className="w-10 h-10 rounded-lg shadow-sm object-contain" />
             <div className="hidden lg:block">
               <h1 className="text-lg font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">NASA Bioscience</h1>
             </div>
