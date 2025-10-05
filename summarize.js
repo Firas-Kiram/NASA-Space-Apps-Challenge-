@@ -111,7 +111,7 @@ function extractKeyPoints(text, maxPoints = 8) {
 }
 
 
-async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = "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" }) {
+async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = "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" }) {
   console.log(`Summarizing: ${title}`);
   console.log(`Text length: ${text.length} characters`);
   console.log(`API key present: ${!!apiKey}`);

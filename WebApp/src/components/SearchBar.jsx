@@ -19,38 +19,7 @@ const SearchBar = ({ searchQuery, onSearchChange, resultsCount }) => {
         />
       </div>
       
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
-          {resultsCount} results found
-        </p>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Sort by:</span>
-            <select className="text-sm border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 bg-white">
-              <option>Relevance</option>
-              <option>Date (Newest)</option>
-              <option>Date (Oldest)</option>
-              <option>Citations</option>
-              <option>Confidence</option>
-            </select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">View:</span>
-            <div className="flex border border-gray-300 rounded-lg overflow-hidden">
-              <button className="px-3 py-1 text-sm bg-purple-50 text-purple-600 border-r border-gray-300">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                </svg>
-              </button>
-              <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-50">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      
     </div>
   );
 };

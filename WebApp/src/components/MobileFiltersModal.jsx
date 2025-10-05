@@ -1,7 +1,7 @@
 import React from 'react';
 import FiltersPanel from './FiltersPanel';
 
-const MobileFiltersModal = ({ isOpen, onClose, filters, onFilterChange, availableKeywords = [] }) => {
+const MobileFiltersModal = ({ isOpen, onClose, filters, onFilterChange, availableKeywords = [], sortBy, onSortChange }) => {
   if (!isOpen) return null;
 
   return (
@@ -29,6 +29,23 @@ const MobileFiltersModal = ({ isOpen, onClose, filters, onFilterChange, availabl
         
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
+          {/* Sort Options */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-900 mb-3">Sort by</h3>
+            <select
+              value={sortBy}
+              onChange={(e) => onSortChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="year-desc">Year (Newest First)</option>
+              <option value="year-asc">Year (Oldest First)</option>
+              <option value="title-asc">Title (A-Z)</option>
+              <option value="title-desc">Title (Z-A)</option>
+              <option value="citations-desc">Citations (Most First)</option>
+              <option value="citations-asc">Citations (Least First)</option>
+            </select>
+          </div>
+          
           <FiltersPanel 
             filters={filters}
             onFilterChange={onFilterChange}

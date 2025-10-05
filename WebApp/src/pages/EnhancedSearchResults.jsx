@@ -23,6 +23,7 @@ const EnhancedSearchResults = () => {
     confidence: [],
     tags: []
   });
+  const [sortBy, setSortBy] = useState('year-desc'); // Default: newest first
 
   // Load publications data on component mount
   useEffect(() => {
@@ -49,9 +50,9 @@ const EnhancedSearchResults = () => {
     loadPublications();
   }, []);
 
-  // Filter and search logic
+  // Filter, search, and sort logic
   const filteredResults = useMemo(() => {
-    return searchResults.filter(publication => {
+    let filtered = searchResults.filter(publication => {
       // Text search
       if (searchQuery) {
         const searchLower = searchQuery.toLowerCase();
@@ -71,16 +72,6 @@ const EnhancedSearchResults = () => {
         return false;
       }
 
-      // Confidence filter
-      if (filters.confidence.length > 0) {
-        const matchesConfidence = filters.confidence.some(confLabel => {
-          if (confLabel === 'High (>0.9)') return publication.confidence > 0.9;
-          if (confLabel === 'Medium (0.7-0.9)') return publication.confidence >= 0.7 && publication.confidence <= 0.9;
-          if (confLabel === 'Low (<0.7)') return publication.confidence < 0.7;
-          return false;
-        });
-        if (!matchesConfidence) return false;
-      }
 
       // Keywords (tags) filter - case-insensitive ALL selected must match
       if (filters.tags.length > 0) {
@@ -92,7 +83,27 @@ const EnhancedSearchResults = () => {
 
       return true;
     });
-  }, [searchResults, searchQuery, filters]);
+
+    // Sort the filtered results
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'year-desc':
+          return b.year - a.year; // Newest first
+        case 'year-asc':
+          return a.year - b.year; // Oldest first
+        case 'title-asc':
+          return a.title.localeCompare(b.title); // A-Z
+        case 'title-desc':
+          return b.title.localeCompare(a.title); // Z-A
+        case 'citations-desc':
+          return (b.citations || 0) - (a.citations || 0); // Most cited first
+        case 'citations-asc':
+          return (a.citations || 0) - (b.citations || 0); // Least cited first
+        default:
+          return b.year - a.year; // Default: newest first
+      }
+    });
+  }, [searchResults, searchQuery, filters, sortBy]);
 
   // Context panel data
   const contextItem = selectedItem ? {
@@ -196,9 +207,9 @@ const EnhancedSearchResults = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
             </svg>
             <span className="text-sm font-medium text-gray-700">Filters</span>
-            {(filters.years.length + filters.confidence.length + filters.tags.length) > 0 && (
+            {(filters.years.length + filters.tags.length) > 0 && (
               <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-purple-600 rounded-full">
-                {filters.years.length + filters.confidence.length + filters.tags.length}
+                {filters.years.length + filters.tags.length}
               </span>
             )}
           </button>
@@ -212,6 +223,8 @@ const EnhancedSearchResults = () => {
               filters={filters}
               onFilterChange={setFilters}
               availableKeywords={availableKeywords}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
             />
           </div>
 
@@ -234,6 +247,8 @@ const EnhancedSearchResults = () => {
           filters={filters}
           onFilterChange={setFilters}
           availableKeywords={availableKeywords}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
         />
 
         {/* Action Summary Bar */}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { filterOptions } from '../data/searchData';
 
-const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [] }) => {
+const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [], sortBy, onSortChange }) => {
   const [keywordSearchQuery, setKeywordSearchQuery] = useState('');
   
   // Filter keywords based on search query
@@ -23,25 +23,31 @@ const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [] }) => {
   const clearAllFilters = () => {
     onFilterChange({
       years: [],
-      confidence: [],
       tags: []
     });
   };
 
   return (
     <div className="sticky top-24 space-y-4">
-      {/* Filter Header */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-          <button
-            onClick={clearAllFilters}
-            className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+
+      {/* Sort Options */}
+      {sortBy && onSortChange && (
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Sort by</h3>
+          <select
+            value={sortBy}
+            onChange={(e) => onSortChange(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
-            Clear All
-          </button>
+            <option value="year-desc">Year (Newest First)</option>
+            <option value="year-asc">Year (Oldest First)</option>
+            <option value="title-asc">Title (A-Z)</option>
+            <option value="title-desc">Title (Z-A)</option>
+            <option value="citations-desc">Citations (Most First)</option>
+            <option value="citations-asc">Citations (Least First)</option>
+          </select>
         </div>
-      </div>
+      )}
 
       {/* Removed Organisms Filter per request */}
 
@@ -66,30 +72,8 @@ const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [] }) => {
             </option>
           ))}
         </select>
-      </div>
+      </div>  
 
-      {/* Confidence Filter */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Confidence Level</h4>
-        <div className="space-y-2">
-          {filterOptions.confidence.map((conf, index) => (
-            <label key={index} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.confidence.includes(conf.label)}
-                onChange={() => {
-                  const newConfidence = filters.confidence.includes(conf.label)
-                    ? filters.confidence.filter(c => c !== conf.label)
-                    : [...filters.confidence, conf.label];
-                  onFilterChange({ ...filters, confidence: newConfidence });
-                }}
-                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
-              />
-              <span className="ml-2 text-sm text-gray-700">{conf.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
 
       {/* Keywords Filter */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -158,11 +142,11 @@ const FiltersPanel = ({ filters, onFilterChange, availableKeywords = [] }) => {
       </div>
 
       {/* Active Filters Summary */}
-      {(filters.years.length > 0 || filters.confidence.length > 0 || filters.tags.length > 0) && (
+      {(filters.years.length > 0 || filters.tags.length > 0) && (
         <div className="bg-purple-50 rounded-2xl p-4 border border-purple-200">
           <h4 className="text-sm font-medium text-purple-900 mb-2">Active Filters</h4>
           <div className="flex flex-wrap gap-1">
-            {[...filters.years, ...filters.confidence, ...filters.tags].map((filter, index) => (
+            {[...filters.years, ...filters.tags].map((filter, index) => (
               <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
                 {filter}
               </span>
