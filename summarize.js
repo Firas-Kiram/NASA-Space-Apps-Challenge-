@@ -123,7 +123,7 @@ function stripMarkdown(text) {
     .trim();
 }
 
-async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = "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" }) {
+async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = "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" }) {
   console.log(`Summarizing: ${title}`);
   console.log(`Text length: ${text.length} characters`);
   console.log(`API key present: ${!!apiKey}`);
@@ -136,7 +136,9 @@ async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey =
   try {
     const summary = await callOpenRouter({ apiKey, model, title, text });
     console.log(`✓ Summary generated (${summary.length} chars)`);
-    return summary || 'No summary generated.';
+    // Strip markdown formatting
+    const cleanSummary = stripMarkdown(summary);
+    return cleanSummary || 'No summary generated.';
   } catch (e) {
     console.error('OpenRouter error:', e.message);
     // Fallback to extractive if API fails
