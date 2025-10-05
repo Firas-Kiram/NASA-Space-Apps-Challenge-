@@ -4,6 +4,158 @@ import Layout from '../components/Layout';
 import dataService from '../services/dataService';
 import apiService from '../services/apiService';
 
+// Function to render markdown-formatted summary as HTML
+const renderMarkdownSummary = (text) => {
+  if (!text) return null;
+  
+  const parseInlineBold = (lineText) => {
+    const parts = [];
+    let lastIndex = 0;
+    lineText.replace(/\*\*(.*?)\*\*/g, (match, p1, offset) => {
+      if (offset > lastIndex) {
+        parts.push(lineText.substring(lastIndex, offset));
+      }
+      parts.push(<strong key={`bold-${offset}`} className="text-purple-900 font-semibold">{p1}</strong>);
+      lastIndex = offset + match.length;
+      return ''; // Replace to ensure correct offset for next match
+    });
+    if (lastIndex < lineText.length) {
+      parts.push(lineText.substring(lastIndex));
+    }
+    return parts;
+  };
+
+  const lines = text.split('\n');
+  const elements = [];
+  let currentParagraph = [];
+  let currentList = [];
+  let listType = null;
+  
+  const flushList = () => {
+    if (currentList.length > 0) {
+      if (listType === 'ul') {
+        elements.push(
+          <ul key={`ul-${elements.length}`} className="list-disc list-inside mb-4 space-y-1">
+            {currentList}
+          </ul>
+        );
+      } else if (listType === 'ol') {
+        elements.push(
+          <ol key={`ol-${elements.length}`} className="list-decimal list-inside mb-4 space-y-1">
+            {currentList}
+          </ol>
+        );
+      }
+      currentList = [];
+      listType = null;
+    }
+  };
+  
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    
+    if (trimmed.startsWith('## ')) {
+      // Main title (##)
+      flushList();
+      if (currentParagraph.length > 0) {
+        elements.push(
+          <p key={`p-${index}`} className="text-gray-700 leading-relaxed mb-4">
+            {parseInlineBold(currentParagraph.join(' '))}
+          </p>
+        );
+        currentParagraph = [];
+      }
+      elements.push(
+        <h2 key={`h2-${index}`} className="text-2xl font-bold text-purple-900 mb-6 mt-2">
+          {parseInlineBold(trimmed.substring(3))}
+        </h2>
+      );
+    } else if (trimmed.startsWith('### ')) {
+      // Section headers (###)
+      flushList();
+      if (currentParagraph.length > 0) {
+        elements.push(
+          <p key={`p-${index}`} className="text-gray-700 leading-relaxed mb-4">
+            {parseInlineBold(currentParagraph.join(' '))}
+          </p>
+        );
+        currentParagraph = [];
+      }
+      elements.push(
+        <h3 key={`h3-${index}`} className="text-xl font-semibold text-purple-800 mb-4 mt-2">
+          {parseInlineBold(trimmed.substring(4))}
+        </h3>
+      );
+    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      // Bullet points
+      if (currentParagraph.length > 0) {
+        elements.push(
+          <p key={`p-${index}`} className="text-gray-700 leading-relaxed mb-4">
+            {parseInlineBold(currentParagraph.join(' '))}
+          </p>
+        );
+        currentParagraph = [];
+      }
+      if (listType !== 'ul') {
+        flushList();
+        listType = 'ul';
+      }
+      currentList.push(
+        <li key={`li-${index}`} className="text-gray-700">
+          {parseInlineBold(trimmed.substring(2))}
+        </li>
+      );
+    } else if (trimmed.match(/^\d+\.\s/)) {
+      // Numbered lists
+      if (currentParagraph.length > 0) {
+        elements.push(
+          <p key={`p-${index}`} className="text-gray-700 leading-relaxed mb-4">
+            {parseInlineBold(currentParagraph.join(' '))}
+          </p>
+        );
+        currentParagraph = [];
+      }
+      if (listType !== 'ol') {
+        flushList();
+        listType = 'ol';
+      }
+      currentList.push(
+        <li key={`li-${index}`} className="text-gray-700">
+          {parseInlineBold(trimmed.substring(trimmed.indexOf('.') + 1).trim())}
+        </li>
+      );
+    } else if (trimmed === '') {
+      // Empty line, end current paragraph and flush list
+      flushList();
+      if (currentParagraph.length > 0) {
+        elements.push(
+          <p key={`p-${index}`} className="text-gray-700 leading-relaxed mb-4">
+            {parseInlineBold(currentParagraph.join(' '))}
+          </p>
+        );
+        currentParagraph = [];
+      }
+    } else {
+      // Regular paragraph text
+      flushList();
+      currentParagraph.push(trimmed);
+    }
+  });
+  
+  // Flush any remaining list or paragraph
+  flushList();
+
+  // Add any remaining paragraph
+  if (currentParagraph.length > 0) {
+    elements.push(
+      <p key={`p-final`} className="text-gray-700 leading-relaxed mb-4">
+        {parseInlineBold(currentParagraph.join(' '))}
+      </p>
+    );
+  }
+  return <div className="markdown-content">{elements}</div>;
+};
+
 const PublicationDetail = () => {
   const { id } = useParams();
   const [showSources, setShowSources] = useState(false);
@@ -131,7 +283,9 @@ const PublicationDetail = () => {
                 )}
                 
                 {!loadingSummary && !summaryError && summary && (
-                  <p>{summary}</p>
+                  <div className="markdown-content">
+                    {renderMarkdownSummary(summary)}
+                  </div>
                 )}
                 
                 {!loadingSummary && !summaryError && !summary && (

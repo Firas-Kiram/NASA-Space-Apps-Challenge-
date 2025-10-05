@@ -110,20 +110,8 @@ function extractKeyPoints(text, maxPoints = 8) {
   return keyPoints.join('. ') + '.';
 }
 
-function stripMarkdown(text) {
-  // Remove markdown formatting
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '$1')  // Bold
-    .replace(/\*(.*?)\*/g, '$1')      // Italic
-    .replace(/#{1,6}\s/g, '')         // Headers
-    .replace(/`(.*?)`/g, '$1')        // Code
-    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Links
-    .replace(/^\s*[-*+]\s/gm, '')     // List bullets
-    .replace(/^\s*\d+\.\s/gm, '')     // Numbered lists
-    .trim();
-}
 
-async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = "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" }) {
+async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = "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" }) {
   console.log(`Summarizing: ${title}`);
   console.log(`Text length: ${text.length} characters`);
   console.log(`API key present: ${!!apiKey}`);
@@ -136,9 +124,7 @@ async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey =
   try {
     const summary = await callOpenRouter({ apiKey, model, title, text });
     console.log(`✓ Summary generated (${summary.length} chars)`);
-    // Strip markdown formatting
-    const cleanSummary = stripMarkdown(summary);
-    return cleanSummary || 'No summary generated.';
+    return summary || 'No summary generated.';
   } catch (e) {
     console.error('OpenRouter error:', e.message);
     // Fallback to extractive if API fails
