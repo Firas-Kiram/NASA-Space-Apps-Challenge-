@@ -6,6 +6,7 @@ import OverviewDashboard from './pages/OverviewDashboard';
 import SearchResults from './pages/SearchResults';
 import EnhancedSearchResults from './pages/EnhancedSearchResults';
 import PublicationDetail from './pages/PublicationDetail';
+import ChatBot from './pages/ChatBot';
 import KnowledgeGraph from './pages/KnowledgeGraph';
 import CompareExperiments from './pages/CompareExperiments';
 import InsightsGaps from './pages/InsightsGaps';
@@ -39,6 +40,11 @@ function App() {
             <Route path="/publication/:id" element={
               <ProtectedRoute>
                 <PublicationDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/chatbot" element={
+              <ProtectedRoute>
+                <ChatBot />
               </ProtectedRoute>
             } />
             <Route path="/knowledge-graph" element={

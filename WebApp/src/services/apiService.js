@@ -57,6 +57,26 @@ class ApiService {
       throw error;
     }
   }
+
+  async summarizePaper(title) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/summarize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error summarizing paper:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ApiService();

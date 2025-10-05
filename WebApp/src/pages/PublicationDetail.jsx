@@ -2,11 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import dataService from '../services/dataService';
+import apiService from '../services/apiService';
 
 const PublicationDetail = () => {
   const { id } = useParams();
   const [showSources, setShowSources] = useState(false);
   const [publication, setPublication] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState(null);
 
   useEffect(() => {
     const run = async () => {
@@ -18,6 +22,23 @@ const PublicationDetail = () => {
     };
     run();
   }, [id]);
+
+  const handleSummarize = async () => {
+    if (!publication) return;
+    
+    setLoadingSummary(true);
+    setSummaryError(null);
+    
+    try {
+      const result = await apiService.summarizePaper(publication.title);
+      setSummary(result.summary);
+    } catch (error) {
+      console.error('Summarization error:', error);
+      setSummaryError(error.message || 'Failed to generate summary');
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
 
   if (!publication) {
     return (
@@ -81,41 +102,42 @@ const PublicationDetail = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">AI-Generated Summary</h2>
                 <div className="flex items-center space-x-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    High Confidence
-                  </span>
                   <button 
-                    onClick={() => setShowSources(!showSources)}
-                    className="px-3 py-1 text-sm text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors"
+                    onClick={handleSummarize}
+                    disabled={loadingSummary}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {showSources ? 'Hide Sources' : 'Show Sources'}
+                    {loadingSummary ? 'Generating...' : 'Summarize'}
                   </button>
                 </div>
               </div>
               
               <div className="prose prose-sm max-w-none text-gray-700 mb-4">
-                <p>{publication.summary || 'Click "Summarize" button to generate an AI summary of this publication.'}</p>
-              </div>
-
-              {showSources && (
-                <div className="border-t pt-4">
-                  <h4 className="font-medium text-gray-900 mb-2">Source Evidence</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                      <span className="text-sm text-gray-600">Section 3.2: "Cellulose content decreased by 15% ± 2.3%"</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                      <span className="text-sm text-gray-600">Section 3.4: "Pectin levels showed significant increase (23% ± 1.8%)"</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                      <span className="text-sm text-gray-600">Discussion: "Structural adaptations indicate cellular response mechanisms"</span>
-                    </div>
+                {loadingSummary && (
+                  <div className="flex items-center space-x-2 text-purple-600">
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Generating AI summary...</span>
                   </div>
-                </div>
-              )}
+                )}
+                
+                {!loadingSummary && summaryError && (
+                  <div className="text-red-600 bg-red-50 p-4 rounded-lg">
+                    <p className="font-medium">Error generating summary</p>
+                    <p className="text-sm">{summaryError}</p>
+                  </div>
+                )}
+                
+                {!loadingSummary && !summaryError && summary && (
+                  <p>{summary}</p>
+                )}
+                
+                {!loadingSummary && !summaryError && !summary && (
+                  <p className="text-gray-500">Click "Summarize" button to generate an AI summary of this publication using data from the paper's abstract, introduction, methods, results, and conclusion.</p>
+                )}
+              </div>
             </div>
 
             {/* Section Viewer - removed temporarily, will be implemented later */}
