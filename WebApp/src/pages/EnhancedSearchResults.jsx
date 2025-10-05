@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import SearchBar from '../components/SearchBar';
 import FiltersPanel from '../components/FiltersPanel';
@@ -7,6 +8,7 @@ import MobileFiltersModal from '../components/MobileFiltersModal';
 import dataService from '../services/dataService';
 
 const EnhancedSearchResults = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [savedItems, setSavedItems] = useState([]);
@@ -115,7 +117,8 @@ const EnhancedSearchResults = () => {
 
   // Action handlers
   const handleSelect = (publication) => {
-    setSelectedItem(publication);
+    // Navigate to the publication detail page
+    navigate(`/publication/${encodeURIComponent(publication.title)}`);
   };
 
   const handleCompare = (publication) => {

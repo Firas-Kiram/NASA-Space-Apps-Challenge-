@@ -9,25 +9,13 @@ const ResultCard = ({ publication, onSelect, isSelected, onCompare, onSave }) =>
     return 'bg-red-100 text-red-800';
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onSelect(publication);
-    }
-  };
-
   return (
     <div
-      className={`bg-white rounded-lg p-4 shadow-md cursor-pointer transition-all duration-300 ease-out transform ${
+      className={`bg-white rounded-lg p-4 shadow-md transition-all duration-300 ease-out transform ${
         isHovered ? 'translate-y-[-4px] shadow-lg' : ''
-      } ${isSelected ? 'ring-2 ring-purple-500 ring-offset-2' : ''} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+      } ${isSelected ? 'ring-2 ring-purple-500 ring-offset-2' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => onSelect(publication)}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      role="button"
-      aria-label={`View details for ${publication.title}`}
     >
       {/* Top line: Title and Year */}
       <div className="flex items-start justify-between mb-3">
