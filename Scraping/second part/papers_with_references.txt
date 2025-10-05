@@ -1,0 +1,466 @@
+================================================================================
+PAPER 1: Mice in Bion-M 1 Space Mission: Training and Selection
+URL: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4136787/
+REFERENCES (36 found):
+================================================================================
+
+1. Vestnik Rossijskoj Akademii Nauk
+
+2. 2. Ilyin EA (2000) Historical overview of the Bion project. J Gravit Physiol 7: S1–S8. [PubMed] [Goo
+
+3. From Research Rockets
+
+4. The Neurolab Spacelab
+
+5. 5. Pecaut MJ, Nelson GA, Peters LL, Kostenuik PJ, Bateman TA, et al. (2003) Genetic models in applie
+
+6. 6. Behnke BJ, Stabley JN, McCullough DJ, Davis RT, Dominguez JM, et al. (2013) Effects of spacefligh
+
+7. 7. Gridley DS, Mao XW, Stodieck LS, Ferguson VL, Bateman TA, et al. (2013) Changes in Mouse Thymus a
+
+8. 8. Baqai FP, Gridley DS, Slater JM, Luo-Owen X, Stodieck LS, et al. (2009) Effects of spaceflight on
+
+9. 9. Lujan HL, Janbaih H, Feng HZ, Jin JP, DiCarlo SE (2006) Reduced susceptibility to ventricular tac
+
+10. The Mice Drawer System
+
+11. 11. Andreev-Andrievskiy AA, Popova AS, Borovik AS, Dolgov ON, Tsvirkun DV, et al. (2014) Physiology
+
+12. 12.Festing MF, Overend P, Gaines Das R, Cortina-Borja M, Berdoy M (2002) The design of animal experi
+
+13. III.
+
+14. 14. Aviles H, Belay T, Fountain K, Vance M, Sonnenfeld G (2003) Increased susceptibility to Pseudomo
+
+15. Media Ion Composition Controls Regulatory
+
+16. 16. Howard BR (2002) Control of variability. ILAR J 43: 194–201. [DOI] [PubMed] [Google Scholar]
+
+17. 17. Van Loo PLP, Van Zutphen LFM, Baumans V (2003) Male management: coping with aggression problems
+
+18. Blood Pressure Measurement
+
+19. German Mouse Clinic
+
+20. The Open Field Test
+
+21. 21. Maurissen JPJ, Marable BR, Andrus AK, Stebbins KE (2003) Factors affecting grip strength testing
+
+22. 22. Rogers D, Peters J, Martin J, Ball S, Nicholson S, et al. (2001) SHIRPA, a protocol for behavior
+
+23. Front Behav Neurosci
+
+24. Bridge Between Parametric
+
+25. Applied Animal Behaviour Science
+
+26. 27. Bouwknecht JA, Hijzen TH, van der Gugten J, Maes RA, Olivier B (2000) Stress-induced hyperthermi
+
+27. Genes Brain Behav
+
+28. 29. Drude S, Geiβler A, Olfe J, Starke A, Domanska G, et al. (2011) Side effects of control treatmen
+
+29. Pharmacol Biochem Behav
+
+30. 31. Hurst JL, West RS (2010) Taming anxiety in laboratory mice. Nat Meth 7: 825–826. [DOI] [PubMed]
+
+31. 32. Ward R, Collins RL, Tanguay G, Miceli D (1990) A quantitative study of cerebrovascular variation
+
+32. National Research Council
+
+33. Other Scientific Purposes
+
+34. 35.Available: http://biosputnik.imbp.ru. Accessed 19 December 2013.
+
+35. Behavioural Brain Research
+
+36. Five Inbred Strains
+
+================================================================================
+
+================================================================================
+PAPER 2: Microgravity Induces Pelvic Bone Loss through Osteoclastic Activity, Osteocytic Osteolysis, and Osteoblastic Cell Cycle Inhibition by CDKN1a/p21
+URL: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3630201/
+REFERENCES (67 found):
+================================================================================
+
+1. 1. Nabavi N, Khandani A, Camirand A, Harrison RE (2011) Effects of microgravity on osteoclast bone r
+
+2. Adv Space Res
+
+3. 3. Ohshima H (2006) [Bone loss and bone metabolism in astronauts during long-duration space flight].
+
+4. 4. Smith SM, Heer M (2002) Calcium and bone metabolism during space flight. Nutrition 18: 849–852. [
+
+5. 5. Zayzafoon M, Meyers VE, McDonald JM (2005) Microgravity: the immune response and bone. Immunol Re
+
+6. Nutr Sci Vitaminol
+
+7. 8. Ferrando AA, Paddon-Jones D, Wolfe RR (2002) Alterations in protein metabolism during space fligh
+
+8. 9. Fitts RH, Riley DR, Widrick JJ (2001) Functional and structural adaptations of skeletal muscle to
+
+9. International Space Station
+
+10. 11. Aubert AE, Beckers F, Verheyden B (2005) Cardiovascular function and basics of physiology in mic
+
+11. Gravit Space Biol Bull
+
+12. Curr Pharm Biotechnol
+
+13. 15. Carmeliet G, Bouillon R (1999) The effect of microgravity on morphology and gene expression of o
+
+14. 16. Cavolina JM, Evans GL, Harris SA, Zhang M, Westerlind KC, et al. (1997) The effects of orbital s
+
+15. 17. Tamma R, Colaianni G, Camerino C, Di Benedetto A, Greco G, et al. (2009) Microgravity during spa
+
+16. 18. Vico L, Collet P, Guignandon A, Lafage-Proust MH, Thomas T, et al. (2000) Effects of long-term m
+
+17. Calcif Tissue Int
+
+18. 20. Datta HK, Ng WF, Walker JA, Tuck SP, Varanasi SS (2008) The cell biology of bone metabolism. J C
+
+19. 21. Raggatt LJ, Partridge NC Cellular and molecular mechanisms of bone remodeling. J Biol Chem 285:
+
+20. 22. Bucaro MA, Zahm AM, Risbud MV, Ayyaswamy PS, Mukundakrishnan K, et al. (2007) The effect of simu
+
+21. 23. Dai ZQ, Wang R, Ling SK, Wan YM, Li YH (2007) Simulated microgravity inhibits the proliferation
+
+22. 24. Jee WS, Wronski TJ, Morey ER, Kimmel DB (1983) Effects of spaceflight on trabecular bone in rats
+
+23. 25. Wronski TJ, Morey ER (1983) Effect of spaceflight on periosteal bone formation in rats. Am J Phy
+
+24. Exp Cell Res
+
+25. 27. Siu PM, Pistilli EE, Murlasits Z, Alway SE (2006) Hindlimb unloading increases muscle content of
+
+26. Bone Miner Res
+
+27. 29. Wang X, Kua HY, Hu Y, Guo K, Zeng Q, et al. (2006) p53 functions as a negative regulator of oste
+
+28. 30. Liu H, Li B (2010) p53 control of bone remodeling. J Cell Biochem 111: 529–534. [DOI] [PubMed] [
+
+29. Proc Natl Acad Sci
+
+30. 32. Qing H, Bonewald LF (2009) Osteocyte remodeling of the perilacunar and pericanalicular matrix. I
+
+31. 33. Teti A, Zallone A (2009) Do osteocytes contribute to bone mineral homeostasis? Osteocytic osteol
+
+32. Kosm Biol Aviakosm Med
+
+33. 37. Zehnder Y, Luthi M, Michel D, Knecht H, Perrelet R, et al. (2004) Long-term changes in bone meta
+
+34. 38. Baecker N, Tomic A, Mika C, Gotzmann A, Platen P, et al. (2003) Bone resorption is induced on th
+
+35. 39. Vico L, Chappard D, Alexandre C, Palle S, Minaire P, et al. (1987) Effects of a 120 day period o
+
+36. 40. Caiozzo VJ, Baker MJ, Herrick RE, Tao M, Baldwin KM (1994) Effect of spaceflight on skeletal mus
+
+37. 42. Bonewald LF (2007) Osteocytes as dynamic multifunctional cells. Ann N Y Acad Sci 1116: 281–290.
+
+38. 43. Hill PA (1998) Bone remodelling. Br J Orthod 25: 101–107. [DOI] [PubMed] [Google Scholar]
+
+39. 44. Nakano Y, Toyosawa S, Takano Y (2004) Eccentric localization of osteocytes expressing enzymatic
+
+40. 45. Hayman AR, Jones SJ, Boyde A, Foster D, Colledge WH, et al. (1996) Mice lacking tartrate-resista
+
+41. Ann Rheum Dis
+
+42. 47. Malemud CJ (2006) Matrix metalloproteinases (MMPs) in health and disease: an overview. Front Bio
+
+43. Nat Rev Mol Cell Biol
+
+44. 49. Hill PA, Murphy G, Docherty AJ, Hembry RM, Millican TA, et al. (1994) The effects of selective i
+
+45. 50. Holmbeck K, Bianco P, Pidoux I, Inoue S, Billinghurst RC, et al. (2005) The metalloproteinase MT
+
+46. 51. Okada S, Yoshida S, Ashrafi SH, Schraufnagel DE (2002) The canalicular structure of compact bone
+
+47. 52. Vogelstein B, Kinzler KW (1992) p53 function and dysfunction. Cell 70: 523–526. [DOI] [PubMed] [
+
+48. Aviat Space Environ Med
+
+49. 54. Heber-Katz E, Leferovich J, Bedelbaeva K, Gourevitch D, Clark L (2004) The scarless heart and th
+
+50. 55. Rizzo AM, Corsetto PA, Montorfano G, Milani S, Zava S, et al. (2012) Effects of long-term space
+
+51. 56. Schoenfeld MP, Ansari RR, Zakrajsek JF, Billiar TR, Toyoda Y, et al. (2011) Hydrogen therapy may
+
+52. 57. Stein TP (2002) Space flight and oxidative stress. Nutrition 18: 867–871. [DOI] [PubMed] [Google
+
+53. 58. Zhang R, Ran HH, Ma J, Bai YG, Lin LJ (2012) NAD(P)H oxidase inhibiting with apocynin improved v
+
+54. 59. Barbash O, Zamfirova P, Lin DI, Chen X, Yang K, et al. (2008) Mutations in Fbx4 inhibit dimeriza
+
+55. 60. Lin DI, Barbash O, Kumar KG, Weber JD, Harper JW, et al. (2006) Phosphorylation-dependent ubiqui
+
+56. 61. Shiloh Y (2009) FBXO31: a new player in the ever-expanding DNA damage response orchestra. Sci Si
+
+57. 62. Filvaroff E, Erlebacher A, Ye J, Gitelman SE, Lotz J, et al. (1999) Inhibition of TGF-beta recep
+
+58. Clin Orthop Relat Res
+
+59. Ciba Found Symp
+
+60. 66. Chang SF, Chang TK, Peng HH, Yeh YT, Lee DY, et al. (2009) BMP-4 induction of arrest and differe
+
+61. 67. Halevy O, Novitch BG, Spicer DB, Skapek SX, Rhee J, et al. (1995) Correlation of terminal cell c
+
+62. Mol Cell Biol
+
+63. 69. Srivastava S, Weitzmann MN, Kimble RB, Rizzo M, Zahner M, et al. (1998) Estrogen blocks M-CSF ge
+
+64. 70.Klein-Nulend J, Bakker AD, Bacabac RG, Vatsa A, Weinbaum S (2012) Mechanosensation and transducti
+
+65. 71. Ge C, Xiao G, Jiang D, Franceschi RT (2007) Critical role of the extracellular signal-regulated
+
+66. 73. Bonewald LF (2006) Mechanosensation and Transduction in Osteocytes. Bonekey Osteovision 3: 7–15.
+
+67. 74. Schutz H, Donovan ER, Hayes JP (2009) Effects of parity on pelvic size and shape dimorphism in M
+
+================================================================================
+
+================================================================================
+PAPER 3: Microgravity and Cellular Biology: Insights into Cellular Responses and Implications for Human Health
+URL: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11988870/
+REFERENCES (43 found):
+================================================================================
+
+1. Interface.
+
+2. Biol.
+
+3. MMBR.
+
+4. Cureus.
+
+5. Med.
+
+6. Toxicol.
+
+7. Histopathol.
+
+8. Acta.
+
+9. FEBS Lett.
+
+10. Sci.
+
+11. Am.
+
+12. NPJ Microgravity.
+
+13. USA.
+
+14. Biomedicines.
+
+15. Space Res.
+
+16. How Does Spaceflight Affect the Acquired Immune System? npj Microgravity.
+
+17. PLoS ONE.
+
+18. Int.
+
+19. Acta Astronaut.
+
+20. Commun.
+
+21. Stem Cells Int.
+
+22. Rep.
+
+23. Gravitational Physiol.
+
+24. Brain.
+
+25. NeuroImage.
+
+26. Technol.
+
+27. Biomech.
+
+28. Redox Biol.
+
+29. Physiol.
+
+30. [(accessed on 17 January 2025)];npj Microgravity.
+
+31. Cells.
+
+32. Microgravity Analogue Studies
+
+33. [(accessed on 16 January 2025)];Stem Cells Dev.
+
+34. Cell Regen.
+
+35. Stem Cell Rep.
+
+36. Immunol.
+
+37. —Anim.
+
+38. Immun.
+
+39. FASEB J.
+
+40. Biochem.
+
+41. Diabetologia.
+
+42. Microbiol.
+
+43. Astrobiology.
+
+================================================================================
+
+================================================================================
+PAPER 4: Selective Proliferation of Highly Functional Adipose-Derived Stem Cells in Microgravity Culture with Stirred Microspheres
+URL: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7998608/
+REFERENCES (34 found):
+================================================================================
+
+1. Med.
+
+2. Surg.
+
+3. Part A.
+
+4. 4.Hodgetts S.I., Beilharz M.W., Scalzo A.A., Grounds M.D. Why do cultured transplanted myoblasts die
+
+5. Cell Transplant.
+
+6. Stem Cells Int.
+
+7. Stem Cells.
+
+8. Organ Transplant.
+
+9. Stem Cells Dev.
+
+10. Biosci.
+
+11. Cell.
+
+12. Cell Stem Cell.
+
+13. Commun.
+
+14. Neurol.
+
+15. Immunol.
+
+16. USA.
+
+17. Stroke.
+
+18. Physiol.
+
+19. Ther.
+
+20. Rep.
+
+21. Cell Biol.
+
+22. Biomaterials.
+
+23. Gastroenterol.
+
+24. Biochem.
+
+25. Biofabrication.
+
+26. Cells.
+
+27. Cell Prolif.
+
+28. Cell Biochem.
+
+29. Hematol.
+
+30. Sci.
+
+31. Technol.
+
+32. Cytotherapy.
+
+33. PLoS ONE.
+
+34. Genom.
+
+================================================================================
+
+================================================================================
+PAPER 5: Microgravity validation of a novel system for RNA isolation and multiplex quantitative real time PCR analysis of gene expression on the International Space Station
+URL: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5587110/
+REFERENCES (33 found):
+================================================================================
+
+1. Biomed Res Int.
+
+2. 2.Brinckmann E. Biology in Space and Life on Earth: Effects of Spaceflight on Biological Systems: Wi
+
+3. 3.Clément G, Slenzka K. Fundamentals of Space Biology: Research on Cells, Animals, and Plants in Spa
+
+4. PLoS One.
+
+5. National Research Council
+
+6. Stem Cell Res.
+
+7. Stem Cells Dev.
+
+8. Med Mycol.
+
+9. FASEB J.
+
+10. Plant Biol (Stuttg).
+
+11. J Cell Biochem.
+
+12. 15.Copeland DS. Genes in Space-1 2017. https://www.nasa.gov/mission_pages/station/research/experimen
+
+13. NPJ Microgravity.
+
+14. bioRxiv.
+
+15. Proc Natl Acad Sci U S A.
+
+16. 19.Parra M, Jung J. WetLab-2 RT-qPCR procedure 2017. https://www.protocols.io/view/wetlab-2-rt-qpcr-
+
+17. WetLab-2 Preparation of Lyophilized Reagents.
+
+18. Genetic Engineering & Biotechnology News.
+
+19. J Clin Microbiol.
+
+20. Malar J.
+
+21. Anal Bioanal Chem.
+
+22. Lab Chip.
+
+23. Nucleic Acids Res.
+
+24. Mol Biotechnol.
+
+25. Mol Aspects Med.
+
+26. International Space Station Utilization Statistics
+
+27. International Space Station
+
+28. Space Station Research Facilities
+
+29. BMC Mol Biol.
+
+30. Science.
+
+31. European Journal of Physics.
+
+32. 37.Laboratory IUSN. WetLab2 2016. http://www.spacestationresearch.com/hardware/wet-lab-smartcycler-w
+
+33. End Molecular Biology Approach
+
+================================================================================
+

@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import PaperSelector from '../components/PaperSelector';
+import apiService from '../services/apiService';
 
 const KnowledgeGraph = () => {
   const [selectedNode, setSelectedNode] = useState(null);
@@ -8,27 +10,80 @@ const KnowledgeGraph = () => {
     connections: 'all',
     timeRange: 'all'
   });
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedPapers, setSelectedPapers] = useState([]);
+  const [showPaperSelector, setShowPaperSelector] = useState(true);
 
-  // Mock node data
-  const mockNode = {
-    id: 'astrobiology-1',
-    type: 'concept',
-    name: 'Astrobiology',
-    description: 'The study of life in the universe, including its origin, evolution, distribution, and future.',
-    connections: 156,
-    publications: 89,
-    authors: 34,
-    relatedConcepts: ['Extremophiles', 'Mars Exploration', 'Biosignatures', 'Exoplanets'],
-    keyAuthors: ['Dr. Sarah Chen', 'Dr. Michael Rodriguez', 'Dr. Lisa Park'],
-    recentActivity: '23 new publications this year'
+  // Generate graph based on selected papers
+  const generateGraph = async () => {
+    if (selectedPapers.length === 0) {
+      setError('Please select at least one paper to generate the graph');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const paperTitles = selectedPapers.map(p => p.title);
+      const [nodesData, edgesData] = await Promise.all([
+        apiService.fetchKnowledgeGraphNodes(paperTitles),
+        apiService.fetchKnowledgeGraphEdges(paperTitles)
+      ]);
+      
+      setNodes(nodesData);
+      setEdges(edgesData);
+      setShowPaperSelector(false);
+    } catch (err) {
+      console.error('Error generating knowledge graph:', err);
+      setError('Failed to generate knowledge graph');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Handle paper selection changes
+  const handlePapersChange = (papers) => {
+    setSelectedPapers(papers);
+  };
+
+  // Get node types with counts from real data
   const nodeTypes = [
-    { id: 'publications', name: 'Publications', color: '#7c3aed', count: 608 },
-    { id: 'authors', name: 'Authors', color: '#059669', count: 234 },
-    { id: 'concepts', name: 'Concepts', color: '#dc2626', count: 89 },
-    { id: 'institutions', name: 'Institutions', color: '#ea580c', count: 45 }
+    { 
+      id: 'publications', 
+      name: 'Publications', 
+      color: '#7c3aed', 
+      count: nodes.filter(n => n.type === 'publication').length 
+    },
+    { 
+      id: 'authors', 
+      name: 'Authors', 
+      color: '#059669', 
+      count: nodes.filter(n => n.type === 'author').length 
+    },
+    { 
+      id: 'concepts', 
+      name: 'Concepts', 
+      color: '#dc2626', 
+      count: nodes.filter(n => n.type === 'concept').length 
+    }
   ];
+
+  // Filter nodes based on selected types
+  const filteredNodes = nodes.filter(node => 
+    filters.nodeTypes.includes(node.type === 'publication' ? 'publications' : node.type + 's')
+  );
+
+  // Filter edges based on filtered nodes
+  const filteredEdges = edges.filter(edge => {
+    const sourceExists = filteredNodes.some(n => n.id === edge.source);
+    const targetExists = filteredNodes.some(n => n.id === edge.target);
+    return sourceExists && targetExists;
+  });
 
   return (
     <Layout>
@@ -37,17 +92,48 @@ const KnowledgeGraph = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Knowledge Graph Explorer</h1>
-            <p className="text-gray-600">Interactive visualization of research connections and relationships</p>
+            <p className="text-gray-600">
+              {showPaperSelector 
+                ? 'Select papers to generate a focused knowledge graph'
+                : 'Interactive visualization of research connections and relationships'
+              }
+            </p>
           </div>
-          <button className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-colors">
-            Export Graph
-          </button>
+          <div className="flex items-center space-x-2">
+            {!showPaperSelector && (
+              <button 
+                onClick={() => setShowPaperSelector(true)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Select Different Papers
+              </button>
+            )}
+            <button className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-colors">
+              Export Graph
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Main Graph Canvas */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-md">
+        {showPaperSelector ? (
+          /* Paper Selection Interface */
+          <div className="max-w-4xl mx-auto">
+            <PaperSelector
+              selectedPapers={selectedPapers}
+              onPapersChange={handlePapersChange}
+              onGenerateGraph={generateGraph}
+            />
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600">{error}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Knowledge Graph Interface */
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Main Graph Canvas */}
+            <div className="lg:col-span-3">
+              <div className="bg-white rounded-2xl shadow-md">
               {/* Toolbar */}
               <div className="border-b border-gray-200 p-4">
                 <div className="flex items-center justify-between">
@@ -102,8 +188,24 @@ const KnowledgeGraph = () => {
 
               {/* Interactive Canvas */}
               <div className="relative h-96 lg:h-[600px] bg-gray-50">
-                {/* Mock Graph Visualization */}
-                <svg className="w-full h-full" viewBox="0 0 800 600">
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600">Loading knowledge graph...</p>
+                    </div>
+                  </div>
+                ) : error ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <svg className="mx-auto h-12 w-12 text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <p className="text-red-600">{error}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <svg className="w-full h-full" viewBox="0 0 800 600">
                   {/* Background grid */}
                   <defs>
                     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -112,42 +214,113 @@ const KnowledgeGraph = () => {
                   </defs>
                   <rect width="100%" height="100%" fill="url(#grid)" />
                   
-                  {/* Connections */}
-                  <g className="connections">
-                    <line x1="400" y1="300" x2="200" y2="150" stroke="#e5e7eb" strokeWidth="2" />
-                    <line x1="400" y1="300" x2="600" y2="150" stroke="#e5e7eb" strokeWidth="2" />
-                    <line x1="400" y1="300" x2="300" y2="450" stroke="#e5e7eb" strokeWidth="2" />
-                    <line x1="400" y1="300" x2="500" y2="450" stroke="#e5e7eb" strokeWidth="2" />
-                    <line x1="200" y1="150" x2="600" y2="150" stroke="#e5e7eb" strokeWidth="1" />
-                  </g>
+                    {/* Radial Layout */}
+                    {(() => {
+                      const centerX = 400;
+                      const centerY = 300;
+                      const radiusConcept = 170;
+                      const radiusPaper = 260;
+
+                      const conceptNodes = filteredNodes.filter(n => n.type === 'concept').slice(0, 30);
+                      const paperNodes = filteredNodes.filter(n => n.type === 'publication').slice(0, 20);
+
+                      const placedPositions = new Map();
+
+                      // Place concept nodes in inner ring
+                      conceptNodes.forEach((node, idx) => {
+                        const angle = (2 * Math.PI * idx) / Math.max(conceptNodes.length, 1);
+                        const x = centerX + radiusConcept * Math.cos(angle);
+                        const y = centerY + radiusConcept * Math.sin(angle);
+                        placedPositions.set(node.id, { x, y });
+                      });
+
+                      // Place paper nodes in outer ring
+                      paperNodes.forEach((node, idx) => {
+                        const angle = (2 * Math.PI * idx) / Math.max(paperNodes.length, 1);
+                        const x = centerX + radiusPaper * Math.cos(angle);
+                        const y = centerY + radiusPaper * Math.sin(angle);
+                        placedPositions.set(node.id, { x, y });
+                      });
+
+                      const [viewX, viewY] = [0, 0];
+                      const [scale] = [1];
+
+                      return (
+                        <>
+                          {/* Zoom/pan group */}
+                          <g transform={`translate(${viewX},${viewY}) scale(${scale})`}>
+                          {/* Connections */}
+                          <g className="connections">
+                            {filteredEdges.map(edge => {
+                              const s = placedPositions.get(edge.source);
+                              const t = placedPositions.get(edge.target);
+                              if (!s || !t) return null;
+                              const stroke = edge.type === 'paper-paper' ? '#cbd5e1' : '#e5e7eb';
+                              return (
+                                <line
+                                  key={edge.id}
+                                  x1={s.x}
+                                  y1={s.y}
+                                  x2={t.x}
+                                  y2={t.y}
+                                  stroke={stroke}
+                                  strokeWidth={edge.strength === 'strong' ? 3 : edge.strength === 'medium' ? 2 : 1}
+                                  opacity={edge.type === 'paper-paper' ? 0.5 : edge.strength === 'strong' ? 0.8 : edge.strength === 'medium' ? 0.6 : 0.35}
+                                />
+                              );
+                            })}
+                          </g>
+
+                          {/* Nodes */}
+                          <g className="nodes">
+                            {[...conceptNodes, ...paperNodes].map(node => {
+                              const pos = placedPositions.get(node.id);
+                              if (!pos) return null;
+                              const radius = node.type === 'concept' ? 24 : 18;
+                              const maxChars = node.type === 'concept' ? 10 : 8;
+                              const label = node.name.length > maxChars ? node.name.slice(0, maxChars) + '…' : node.name;
+                              return (
+                                <g key={node.id} className="cursor-pointer" onClick={() => setSelectedNode(node)}>
+                                  <circle cx={pos.x} cy={pos.y} r={radius} fill={node.color || '#6b7280'} />
+                                  <text x={pos.x} y={pos.y + 3} textAnchor="middle" dominantBaseline="middle" className="fill-white" style={{ fontSize: 9, fontWeight: 700 }}>
+                                    {label}
+                                  </text>
+                                </g>
+                              );
+                            })}
+                          </g>
+                          </g>
+                        </>
+                      );
+                    })()}
                   
                   {/* Nodes */}
                   <g className="nodes">
-                    {/* Central node - Astrobiology */}
+                      {filteredNodes.slice(0, 20).map((node, index) => {
+                        // Simple positioning for demo
+                        const x = 100 + (index * 60) % 600;
+                        const y = 100 + (index * 40) % 400;
+                        const radius = node.type === 'concept' ? 25 : node.type === 'publication' ? 20 : 15;
+                        
+                        return (
+                          <g key={node.id}>
                     <circle 
-                      cx="400" cy="300" r="30" 
-                      fill="#7c3aed" 
-                      className="cursor-pointer hover:fill-purple-700 transition-colors"
-                      onClick={() => setSelectedNode(mockNode)}
-                    />
-                    <text x="400" y="305" textAnchor="middle" className="text-white text-sm font-medium fill-white">
-                      Astrobiology
-                    </text>
-                    
-                    {/* Connected nodes */}
-                    <circle cx="200" cy="150" r="20" fill="#059669" className="cursor-pointer hover:fill-green-700 transition-colors" />
-                    <text x="200" y="155" textAnchor="middle" className="text-white text-xs fill-white">Authors</text>
-                    
-                    <circle cx="600" cy="150" r="20" fill="#dc2626" className="cursor-pointer hover:fill-red-700 transition-colors" />
-                    <text x="600" y="155" textAnchor="middle" className="text-white text-xs fill-white">Mars</text>
-                    
-                    <circle cx="300" cy="450" r="15" fill="#ea580c" className="cursor-pointer hover:fill-orange-700 transition-colors" />
-                    <text x="300" y="455" textAnchor="middle" className="text-white text-xs fill-white">NASA</text>
-                    
-                    <circle cx="500" cy="450" r="15" fill="#7c3aed" className="cursor-pointer hover:fill-purple-700 transition-colors" />
-                    <text x="500" y="455" textAnchor="middle" className="text-white text-xs fill-white">Papers</text>
+                              cx={x} 
+                              cy={y} 
+                              r={radius} 
+                              fill={node.color || '#6b7280'} 
+                              className="cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => setSelectedNode(node)}
+                            />
+                            <text x={x} y={y + 3} textAnchor="middle" dominantBaseline="middle" className="fill-white" style={{ fontSize: 9, fontWeight: 700 }}>
+                              {(node.name || '').slice(0, Math.max(6, Math.min(10, Math.floor(radius * 0.8))))}{(node.name || '').length > Math.max(6, Math.min(10, Math.floor(radius * 0.8))) ? '…' : ''}
+                            </text>
+                          </g>
+                        );
+                      })}
                   </g>
                 </svg>
+                )}
 
                 {/* Graph Controls */}
                 <div className="absolute bottom-4 left-4 flex items-center space-x-2">
@@ -208,49 +381,98 @@ const KnowledgeGraph = () => {
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mb-2">
                       {selectedNode.type}
                     </span>
-                    <p className="text-sm text-gray-600">{selectedNode.description}</p>
+                    {selectedNode.category && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                        {selectedNode.category}
+                      </span>
+                    )}
+                    {selectedNode.type === 'concept' && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        Research concept with {selectedNode.frequency} occurrences across {selectedNode.paperCount} papers
+                      </p>
+                    )}
+                    {selectedNode.type === 'publication' && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        Research publication with {selectedNode.connectionCount} concept connections
+                      </p>
+                    )}
+                    {selectedNode.type === 'author' && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        Author from {selectedNode.institution} with {selectedNode.paperCount} publications
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
+                    {selectedNode.type === 'concept' && (
+                      <>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{selectedNode.frequency}</p>
+                          <p className="text-xs text-gray-500">Frequency</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{selectedNode.paperCount}</p>
+                          <p className="text-xs text-gray-500">Papers</p>
+                        </div>
+                      </>
+                    )}
+                    {selectedNode.type === 'publication' && (
+                      <>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{selectedNode.connections}</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedNode.connectionCount}</p>
                       <p className="text-xs text-gray-500">Connections</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{selectedNode.publications}</p>
-                      <p className="text-xs text-gray-500">Publications</p>
+                          <p className="text-sm font-medium text-gray-900">Research</p>
+                          <p className="text-xs text-gray-500">Type</p>
+                        </div>
+                      </>
+                    )}
+                    {selectedNode.type === 'author' && (
+                      <>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{selectedNode.paperCount}</p>
+                          <p className="text-xs text-gray-500">Papers</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Author</p>
+                          <p className="text-xs text-gray-500">Role</p>
                     </div>
+                      </>
+                    )}
                   </div>
 
+                  {selectedNode.url && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Related Concepts</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedNode.relatedConcepts.map((concept, index) => (
-                        <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
-                          {concept}
-                        </span>
-                      ))}
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Link</h4>
+                      <a 
+                        href={selectedNode.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800 break-all"
+                      >
+                        {selectedNode.url}
+                      </a>
                     </div>
-                  </div>
+                  )}
 
+                  {selectedNode.institution && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Key Authors</h4>
-                    <div className="space-y-1">
-                      {selectedNode.keyAuthors.map((author, index) => (
-                        <p key={index} className="text-sm text-gray-600">{author}</p>
-                      ))}
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Institution</h4>
+                      <p className="text-sm text-gray-600">{selectedNode.institution}</p>
                     </div>
-                  </div>
+                  )}
 
                   <div className="pt-4 border-t">
-                    <p className="text-xs text-gray-500 mb-3">{selectedNode.recentActivity}</p>
                     <div className="space-y-2">
                       <button className="w-full px-3 py-2 text-sm text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors">
                         Explore Connections
                       </button>
+                      {selectedNode.type === 'publication' && (
                       <button className="w-full px-3 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                        View Publications
+                          View Details
                       </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -270,25 +492,34 @@ const KnowledgeGraph = () => {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Graph Statistics</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Selected Papers</span>
+                  <span className="text-sm font-medium">{selectedPapers.length}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Total Nodes</span>
-                  <span className="text-sm font-medium">976</span>
+                  <span className="text-sm font-medium">{nodes.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Total Connections</span>
-                  <span className="text-sm font-medium">2,847</span>
+                  <span className="text-sm font-medium">{edges.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Avg Connections</span>
-                  <span className="text-sm font-medium">2.9</span>
+                  <span className="text-sm text-gray-600">Concepts</span>
+                  <span className="text-sm font-medium">{nodes.filter(n => n.type === 'concept').length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Density</span>
-                  <span className="text-sm font-medium">0.34</span>
+                  <span className="text-sm text-gray-600">Publications</span>
+                  <span className="text-sm font-medium">{nodes.filter(n => n.type === 'publication').length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Authors</span>
+                  <span className="text-sm font-medium">{nodes.filter(n => n.type === 'author').length}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        )}
       </div>
     </Layout>
   );

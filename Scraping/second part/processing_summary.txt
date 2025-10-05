@@ -1,0 +1,16 @@
+PMC Papers with References Processing Summary Report
+============================================================
+
+Total papers processed: 5
+Total references found: 213
+Papers with references: 5/5
+Average references per paper: 42.6
+
+Reference title statistics:
+------------------------------
+Average title length: 44.9 characters
+Shortest title: 3 characters
+Longest title: 100 characters
+
+============================================================
+Processing completed successfully!

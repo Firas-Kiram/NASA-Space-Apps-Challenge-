@@ -18,6 +18,167 @@ const CompareExperiments = () => {
     return 'N/A';
   };
 
+  // Enhanced data extraction functions
+  const extractDuration = (title, keywords) => {
+    const text = `${title} ${keywords}`.toLowerCase();
+    
+    // Look for duration patterns
+    const durationPatterns = [
+      { pattern: /(\d+)\s*day/g, unit: 'days' },
+      { pattern: /(\d+)\s*week/g, unit: 'weeks' },
+      { pattern: /(\d+)\s*month/g, unit: 'months' },
+      { pattern: /(\d+)\s*year/g, unit: 'years' },
+      { pattern: /(\d+)\s*hour/g, unit: 'hours' },
+      { pattern: /(\d+)\s*minute/g, unit: 'minutes' },
+      { pattern: /long[\s-]?term/g, unit: 'long-term' },
+      { pattern: /short[\s-]?term/g, unit: 'short-term' },
+      { pattern: /acute/g, unit: 'acute' },
+      { pattern: /chronic/g, unit: 'chronic' }
+    ];
+
+    for (const { pattern, unit } of durationPatterns) {
+      const matches = text.match(pattern);
+      if (matches) {
+        if (unit === 'long-term' || unit === 'short-term' || unit === 'acute' || unit === 'chronic') {
+          return unit;
+        }
+        const numbers = matches.map(match => match.match(/\d+/)?.[0]).filter(Boolean);
+        if (numbers.length > 0) {
+          const maxDuration = Math.max(...numbers.map(Number));
+          return `${maxDuration} ${unit}`;
+        }
+      }
+    }
+    
+    return 'N/A';
+  };
+
+  const extractMethodology = (keywords) => {
+    if (!keywords) return 'N/A';
+    
+    const methods = [];
+    const text = keywords.toLowerCase();
+    
+    // Research methodologies
+    if (text.includes('in vivo')) methods.push('In Vivo');
+    if (text.includes('in vitro')) methods.push('In Vitro');
+    if (text.includes('pcr')) methods.push('PCR Analysis');
+    if (text.includes('microscopy') || text.includes('microscopic')) methods.push('Microscopy');
+    if (text.includes('behavioral') || text.includes('behavior')) methods.push('Behavioral Testing');
+    if (text.includes('imaging') || text.includes('mri') || text.includes('ct')) methods.push('Medical Imaging');
+    if (text.includes('histology') || text.includes('histological')) methods.push('Histology');
+    if (text.includes('biochemical') || text.includes('biochemistry')) methods.push('Biochemical Analysis');
+    if (text.includes('molecular') || text.includes('genetic')) methods.push('Molecular Biology');
+    if (text.includes('telemetry') || text.includes('monitoring')) methods.push('Telemetry');
+    if (text.includes('culture') || text.includes('cultured')) methods.push('Cell Culture');
+    if (text.includes('flow cytometry')) methods.push('Flow Cytometry');
+    if (text.includes('western blot')) methods.push('Western Blot');
+    if (text.includes('immunohistochemistry')) methods.push('Immunohistochemistry');
+    
+    return methods.length > 0 ? methods.join(', ') : 'N/A';
+  };
+
+  const extractSampleSize = (title, keywords) => {
+    const text = `${title} ${keywords}`.toLowerCase();
+    
+    // Look for sample size patterns
+    const patterns = [
+      /n\s*=\s*(\d+)/g,
+      /(\d+)\s*mice/g,
+      /(\d+)\s*rats/g,
+      /(\d+)\s*subjects/g,
+      /(\d+)\s*participants/g,
+      /(\d+)\s*samples/g,
+      /(\d+)\s*cells/g,
+      /(\d+)\s*animals/g,
+      /(\d+)\s*individuals/g
+    ];
+
+    const sizes = [];
+    patterns.forEach(pattern => {
+      const matches = text.match(pattern);
+      if (matches) {
+        matches.forEach(match => {
+          const number = match.match(/\d+/)?.[0];
+          if (number) sizes.push(parseInt(number));
+        });
+      }
+    });
+
+    if (sizes.length > 0) {
+      const maxSize = Math.max(...sizes);
+      const minSize = Math.min(...sizes);
+      return maxSize === minSize ? maxSize.toString() : `${minSize}-${maxSize}`;
+    }
+    
+    return 'N/A';
+  };
+
+  const determineStatus = (year) => {
+    if (!year || year === 'N/A') return 'Unknown';
+    
+    const currentYear = new Date().getFullYear();
+    const yearNum = parseInt(year);
+    
+    if (yearNum >= currentYear - 2) return 'Recent';
+    if (yearNum >= currentYear - 5) return 'Completed';
+    if (yearNum >= currentYear - 10) return 'Completed';
+    return 'Archived';
+  };
+
+  const extractResearchFocus = (keywords) => {
+    if (!keywords) return 'N/A';
+    
+    const text = keywords.toLowerCase();
+    const focusAreas = [];
+    
+    // Research focus categories
+    if (text.includes('bone') || text.includes('osteoporosis') || text.includes('skeletal')) {
+      focusAreas.push('Bone Health');
+    }
+    if (text.includes('immune') || text.includes('lymphocyte') || text.includes('cytokine')) {
+      focusAreas.push('Immune System');
+    }
+    if (text.includes('cardiovascular') || text.includes('heart') || text.includes('cardiac')) {
+      focusAreas.push('Cardiovascular');
+    }
+    if (text.includes('neurological') || text.includes('brain') || text.includes('neural')) {
+      focusAreas.push('Neurological');
+    }
+    if (text.includes('muscle') || text.includes('muscular') || text.includes('skeletal muscle')) {
+      focusAreas.push('Muscle Function');
+    }
+    if (text.includes('stem cell') || text.includes('regeneration') || text.includes('differentiation')) {
+      focusAreas.push('Stem Cell Biology');
+    }
+    if (text.includes('metabolism') || text.includes('metabolic') || text.includes('glucose')) {
+      focusAreas.push('Metabolism');
+    }
+    if (text.includes('vision') || text.includes('ocular') || text.includes('retinal')) {
+      focusAreas.push('Vision');
+    }
+    if (text.includes('balance') || text.includes('vestibular') || text.includes('sensorimotor')) {
+      focusAreas.push('Balance & Coordination');
+    }
+    
+    return focusAreas.length > 0 ? focusAreas.join(', ') : 'General Research';
+  };
+
+  const extractFunding = (title, keywords) => {
+    const text = `${title} ${keywords}`.toLowerCase();
+    
+    // Look for funding agency patterns
+    if (text.includes('nasa')) return 'NASA';
+    if (text.includes('esa') || text.includes('european space agency')) return 'ESA';
+    if (text.includes('jaxa') || text.includes('japan aerospace')) return 'JAXA';
+    if (text.includes('roscosmos') || text.includes('russian space')) return 'Roscosmos';
+    if (text.includes('nsf') || text.includes('national science foundation')) return 'NSF';
+    if (text.includes('nih') || text.includes('national institutes of health')) return 'NIH';
+    if (text.includes('international') || text.includes('collaboration')) return 'International';
+    
+    return 'N/A';
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -28,16 +189,17 @@ const CompareExperiments = () => {
           id: pub.pub_id,
           title: pub.title || 'N/A',
           type: mapPlatformToType(pub.platform),
-          duration: 'N/A',
+          duration: extractDuration(pub.title, pub.keywords),
           subjects: pub.organism || 'N/A',
           location: pub.platform || 'N/A',
           year: pub.year || 'N/A',
-          status: 'N/A',
-          methodology: 'N/A',
-          sampleSize: 'N/A',
-          funding: 'N/A',
+          status: determineStatus(pub.year),
+          methodology: extractMethodology(pub.keywords),
+          sampleSize: extractSampleSize(pub.title, pub.keywords),
+          funding: extractFunding(pub.title, pub.keywords),
+          researchFocus: extractResearchFocus(pub.keywords),
           results: pub.summary || 'N/A',
-          publications: 'N/A',
+          publications: '1', // Each entry represents one publication
           citations: typeof pub.citations === 'number' ? pub.citations : 'N/A'
         }));
         setExperiments(mapped);
@@ -54,12 +216,13 @@ const CompareExperiments = () => {
   const comparisonFields = [
     { key: 'title', label: 'Experiment Title', type: 'text' },
     { key: 'type', label: 'Type', type: 'badge' },
+    { key: 'researchFocus', label: 'Research Focus', type: 'badge' },
     { key: 'duration', label: 'Duration', type: 'text' },
     { key: 'subjects', label: 'Test Subjects', type: 'text' },
     { key: 'location', label: 'Location', type: 'text' },
     { key: 'year', label: 'Year', type: 'text' },
     { key: 'status', label: 'Status', type: 'status' },
-    { key: 'methodology', label: 'Methodology', type: 'text' },
+    { key: 'methodology', label: 'Methodology', type: 'highlight' },
     { key: 'sampleSize', label: 'Sample Size', type: 'number' },
     { key: 'funding', label: 'Funding', type: 'text' },
     { key: 'results', label: 'Key Results', type: 'highlight' },
@@ -107,14 +270,30 @@ const CompareExperiments = () => {
     
     switch (field.type) {
       case 'badge':
+        const getBadgeColor = (value) => {
+          // Type badges
+          if (value === 'In-flight') return 'bg-purple-100 text-purple-800';
+          if (value === 'Ground-based') return 'bg-blue-100 text-blue-800';
+          if (value === 'Simulation') return 'bg-green-100 text-green-800';
+          
+          // Research focus badges
+          if (value.includes('Bone Health')) return 'bg-orange-100 text-orange-800';
+          if (value.includes('Immune System')) return 'bg-red-100 text-red-800';
+          if (value.includes('Cardiovascular')) return 'bg-pink-100 text-pink-800';
+          if (value.includes('Neurological')) return 'bg-indigo-100 text-indigo-800';
+          if (value.includes('Muscle Function')) return 'bg-yellow-100 text-yellow-800';
+          if (value.includes('Stem Cell Biology')) return 'bg-teal-100 text-teal-800';
+          if (value.includes('Metabolism')) return 'bg-emerald-100 text-emerald-800';
+          if (value.includes('Vision')) return 'bg-cyan-100 text-cyan-800';
+          if (value.includes('Balance & Coordination')) return 'bg-violet-100 text-violet-800';
+          if (value.includes('General Research')) return 'bg-slate-100 text-slate-800';
+          
+          return 'bg-gray-100 text-gray-700';
+        };
+        
         return (
           <div className={baseClasses}>
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              value === 'In-flight' ? 'bg-purple-100 text-purple-800' :
-              value === 'Ground-based' ? 'bg-blue-100 text-blue-800' :
-              value === 'Simulation' ? 'bg-green-100 text-green-800' :
-              'bg-gray-100 text-gray-700'
-            }`}>
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getBadgeColor(value)}`}>
               {value}
             </span>
           </div>
@@ -123,9 +302,10 @@ const CompareExperiments = () => {
         return (
           <div className={baseClasses}>
             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              value === 'Completed' ? 'bg-green-100 text-green-800' :
-              value === 'Ongoing' ? 'bg-blue-100 text-blue-800' :
-              'bg-gray-100 text-gray-800'
+              value === 'Recent' ? 'bg-green-100 text-green-800' :
+              value === 'Completed' ? 'bg-blue-100 text-blue-800' :
+              value === 'Archived' ? 'bg-gray-100 text-gray-800' :
+              'bg-yellow-100 text-yellow-800'
             }`}>
               {value}
             </span>
@@ -214,7 +394,14 @@ const CompareExperiments = () => {
                     </span>
                     <span className="text-xs text-gray-500">{experiment.year}</span>
                   </div>
-                  <p className="text-sm text-gray-600">{experiment.location}</p>
+                  <div className="mb-2">
+                    <span className="text-xs text-gray-500">Focus: </span>
+                    <span className="text-xs text-gray-700">{experiment.researchFocus}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-600">
+                    <span>{experiment.location}</span>
+                    <span>{experiment.duration}</span>
+                  </div>
                 </div>
               ))}
               {experiments
@@ -304,49 +491,63 @@ const CompareExperiments = () => {
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Methodology Variation</p>
-                    <p className="text-sm text-gray-600">Different experimental approaches may affect result comparability</p>
+                    <p className="text-sm font-medium text-gray-900">Research Focus Areas</p>
+                    <p className="text-sm text-gray-600">Different research focuses may require different methodologies</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Sample Size Differences</p>
-                    <p className="text-sm text-gray-600">Varying sample sizes may impact statistical significance</p>
+                    <p className="text-sm font-medium text-gray-900">Experimental Duration</p>
+                    <p className="text-sm text-gray-600">Varying study durations may affect outcome comparability</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Environmental Conditions</p>
-                    <p className="text-sm text-gray-600">Different testing environments show varied results</p>
+                    <p className="text-sm font-medium text-gray-900">Methodology & Techniques</p>
+                    <p className="text-sm text-gray-600">Different experimental approaches may yield different insights</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Funding Sources</p>
+                    <p className="text-sm text-gray-600">Different funding agencies may have different research priorities</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-md">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recommendations</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Research Insights</h3>
               <div className="space-y-3">
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Standardize Protocols</p>
-                    <p className="text-sm text-gray-600">Consider standardizing measurement protocols for better comparison</p>
+                    <p className="text-sm font-medium text-gray-900">Complementary Studies</p>
+                    <p className="text-sm text-gray-600">These studies may provide complementary insights into space biology</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Cross-validation Study</p>
-                    <p className="text-sm text-gray-600">A follow-up study could validate findings across conditions</p>
+                    <p className="text-sm font-medium text-gray-900">Methodology Comparison</p>
+                    <p className="text-sm text-gray-600">Compare effectiveness of different experimental approaches</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Meta-analysis Opportunity</p>
-                    <p className="text-sm text-gray-600">Combined data could provide stronger statistical power</p>
+                    <p className="text-sm font-medium text-gray-900">Future Research Directions</p>
+                    <p className="text-sm text-gray-600">Identify gaps and opportunities for follow-up studies</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Collaboration Potential</p>
+                    <p className="text-sm text-gray-600">Consider cross-agency collaboration for comprehensive studies</p>
                   </div>
                 </div>
               </div>
