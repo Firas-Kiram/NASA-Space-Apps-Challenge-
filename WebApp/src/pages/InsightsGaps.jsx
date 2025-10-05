@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Layout from '../components/Layout';
-import { researchGaps } from '../data/mockData';
+import apiService from '../services/apiService';
 
 const HeatmapCell = ({ value, maxValue, label, onClick }) => {
   const intensity = value / maxValue;
@@ -34,24 +34,69 @@ const HeatmapCell = ({ value, maxValue, label, onClick }) => {
 };
 
 const InsightsGaps = () => {
-  const [selectedTimeRange, setSelectedTimeRange] = useState('2024');
-  const [selectedArea, setSelectedArea] = useState(null);
+  const [selectedTimeRange, setSelectedTimeRange] = useState('all');
+  const [areas, setAreas] = useState([]); // [{name, count}]
+  const [pubs, setPubs] = useState([]); // fresh publications from backend
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock heatmap data
-  const heatmapData = {
-    areas: ['Astrobiology', 'Space Medicine', 'Plant Biology', 'Microbiology', 'Radiation Biology', 'Gravitational Biology'],
-    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    data: [
-      [12, 15, 18, 14, 16, 19, 21, 17, 20, 8, 0, 0], // Astrobiology
-      [8, 11, 13, 10, 12, 15, 16, 13, 14, 6, 0, 0],  // Space Medicine
-      [6, 9, 11, 8, 10, 12, 13, 10, 11, 4, 0, 0],    // Plant Biology
-      [4, 7, 9, 6, 8, 10, 11, 8, 9, 3, 0, 0],        // Microbiology
-      [3, 5, 7, 4, 6, 8, 9, 6, 7, 2, 0, 0],          // Radiation Biology
-      [2, 3, 5, 2, 4, 6, 7, 4, 5, 1, 0, 0]           // Gravitational Biology
-    ]
-  };
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  const maxValue = Math.max(...heatmapData.data.flat());
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const [publications, topAreas] = await Promise.all([
+          apiService.fetchPublications(),
+          apiService.fetchResearchAreas(12)
+        ]);
+        setPubs(publications || []);
+        setAreas(topAreas);
+        setError(null);
+      } catch (e) {
+        console.error('Insights load error:', e);
+        setError('Failed to load insights data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  // Build heatmap counts by top 6 areas x 12 months from publications dates
+  const heatmapData = useMemo(() => {
+    const topAreaNames = (areas || []).slice(0, 6).map(a => a.name);
+    const matrix = Array.from({ length: topAreaNames.length }, () => Array(12).fill(0));
+    for (const pub of pubs) {
+      const dateStr = (pub.date || '').toString();
+      // parse month (look for 3-letter month or numeric month)
+      let mIdx = -1;
+      const mMatch = dateStr.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/i);
+      if (mMatch) {
+        mIdx = months.findIndex(m => m.toLowerCase() === mMatch[0].toLowerCase());
+      } else {
+        const nMatch = dateStr.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/);
+        if (nMatch) {
+          const mm = parseInt(nMatch[1], 10);
+          if (!Number.isNaN(mm) && mm >= 1 && mm <= 12) mIdx = mm - 1;
+        }
+      }
+      if (mIdx < 0) continue;
+      const kws = (pub.keywords || '').split(/[;,|]/).map(k => k.trim()).filter(Boolean);
+      for (let ai = 0; ai < topAreaNames.length; ai++) {
+        const name = topAreaNames[ai];
+        if (kws.some(k => k.toLowerCase() === name.toLowerCase())) {
+          matrix[ai][mIdx] += 1;
+        }
+      }
+    }
+    return { areas: topAreaNames, months, data: matrix };
+  }, [areas]);
+
+  const maxValue = useMemo(() => {
+    if (!heatmapData || !heatmapData.data) return 0;
+    return Math.max(0, ...heatmapData.data.flat());
+  }, [heatmapData]);
 
   // Timeline data
   const timelineEvents = [
@@ -160,7 +205,7 @@ const InsightsGaps = () => {
           </div>
         </div>
 
-        {/* Research Activity Heatmap */}
+        {/* Research Activity Heatmap (real data) */}
         <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-md">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
             <h2 className="text-lg font-semibold text-gray-900">Research Activity Heatmap</h2>
@@ -211,11 +256,33 @@ const InsightsGaps = () => {
           </div>
         </div>
 
-        {/* Top Research Gaps */}
+        {/* Top Research Gaps (derived from real keyword counts) */}
         <div className="space-y-6">
           <h2 className="text-xl font-semibold text-gray-900">Critical Research Gaps</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {topGaps.map((gap, index) => (
+            {(() => {
+              const areaTotals = (areas || []).slice(0, 8);
+              if (areaTotals.length === 0) return null;
+              const maxCount = Math.max(...areaTotals.map(a => a.count));
+              const gaps = areaTotals
+                .sort((a, b) => a.count - b.count)
+                .slice(0, Math.min(4, areaTotals.length))
+                .map(a => ({
+                  title: a.name,
+                  priority: a.count < maxCount * 0.4 ? 'High' : 'Medium',
+                  currentPublications: a.count,
+                  targetPublications: Math.max(a.count + 5, Math.ceil(maxCount * 0.9)),
+                  gap: Math.max(Math.max(a.count + 5, Math.ceil(maxCount * 0.9)) - a.count, 0),
+                  description: `Fewer publications relative to leading areas. Opportunity to expand research in ${a.name}.`,
+                  recommendations: [
+                    `Fund new studies in ${a.name}`,
+                    `Encourage collaborations for ${a.name}`,
+                    `Prioritize experiments covering ${a.name} topics`
+                  ],
+                  timeline: '1-3 years to address',
+                  fundingNeeded: '$1.0M'
+                }));
+              return gaps.map((gap, index) => (
               <div key={index} className="bg-white rounded-2xl p-6 shadow-md hover-lift">
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex-1">{gap.title}</h3>
@@ -278,28 +345,39 @@ const InsightsGaps = () => {
                   )}
                 </div>
               </div>
-            ))}
+              ));
+            })()}
           </div>
         </div>
 
         {/* Summary Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl p-6 shadow-md text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-2">127</div>
-            <div className="text-sm text-gray-600">Total Research Gaps</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-md text-center">
-            <div className="text-3xl font-bold text-red-600 mb-2">23</div>
-            <div className="text-sm text-gray-600">Critical Priority</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-md text-center">
-            <div className="text-3xl font-bold text-orange-600 mb-2">45</div>
-            <div className="text-sm text-gray-600">High Priority</div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-md text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">$18.4M</div>
-            <div className="text-sm text-gray-600">Est. Funding Needed</div>
-          </div>
+          {(() => {
+            const totalAreas = areas.length;
+            const lowCount = areas.filter(a => a.count <= Math.max(...areas.map(x => x.count)) * 0.4).length;
+            const midCount = areas.filter(a => a.count > Math.max(...areas.map(x => x.count)) * 0.4 && a.count <= Math.max(...areas.map(x => x.count)) * 0.7).length;
+            const estFunding = (lowCount * 0.8 + midCount * 0.4).toFixed(1);
+            return (
+              <>
+                <div className="bg-white rounded-2xl p-6 shadow-md text-center">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">{totalAreas}</div>
+                  <div className="text-sm text-gray-600">Tracked Research Areas</div>
+                </div>
+                <div className="bg-white rounded-2xl p-6 shadow-md text-center">
+                  <div className="text-3xl font-bold text-red-600 mb-2">{lowCount}</div>
+                  <div className="text-sm text-gray-600">High Priority</div>
+                </div>
+                <div className="bg-white rounded-2xl p-6 shadow-md text-center">
+                  <div className="text-3xl font-bold text-orange-600 mb-2">{midCount}</div>
+                  <div className="text-sm text-gray-600">Medium Priority</div>
+                </div>
+                <div className="bg-white rounded-2xl p-6 shadow-md text-center">
+                  <div className="text-3xl font-bold text-green-600 mb-2">${estFunding}M</div>
+                  <div className="text-sm text-gray-600">Est. Funding Needed</div>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
     </Layout>

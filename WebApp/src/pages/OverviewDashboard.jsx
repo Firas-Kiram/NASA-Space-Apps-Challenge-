@@ -29,7 +29,16 @@ const OverviewDashboard = () => {
         
         const kpi = dataService.getKPIData();
         const yearData = dataService.getPublicationsByYear();
-        const areas = dataService.getResearchAreas();
+        // Fetch real research areas from backend
+        const areas = await (async () => {
+          try {
+            const api = (await import('../services/apiService')).default;
+            return await api.fetchResearchAreas(12);
+          } catch (e) {
+            console.warn('Falling back to computed research areas:', e.message);
+            return dataService.getResearchAreas();
+          }
+        })();
         
         setKpiData(kpi);
         setPublicationsByYear(yearData);

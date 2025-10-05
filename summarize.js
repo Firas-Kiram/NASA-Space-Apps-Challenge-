@@ -92,44 +92,93 @@ function callOpenRouter({ apiKey, model, title, text }) {
   });
 }
 
-function extractKeyPoints(text, maxPoints = 8) {
-  // Split text into sections and extract key sentences
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 80);
-  const keyPoints = [];
-  
-  // Take representative sentences from different parts of the text
-  const step = Math.max(1, Math.floor(sentences.length / maxPoints));
-  for (let i = 0; i < sentences.length && keyPoints.length < maxPoints; i += step) {
-    const sentence = sentences[i].trim();
-    if (sentence.length > 100 ) {
-      keyPoints.push(sentence);
+function stripAbstractSection(text) {
+  // Remove the abstract section if present to avoid echoing it
+  try {
+    const lower = text.toLowerCase();
+    const abstractIdx = lower.indexOf('abstract');
+    if (abstractIdx === -1) return text;
+    // Look for the next common heading after abstract
+    const nextHeadings = ['introduction', 'background', 'methods', 'materials and methods', 'results'];
+    let nextIdx = -1;
+    for (const h of nextHeadings) {
+      const idx = lower.indexOf(h, abstractIdx + 8);
+      if (idx !== -1 && (nextIdx === -1 || idx < nextIdx)) nextIdx = idx;
     }
+    if (nextIdx !== -1) {
+      return text.slice(nextIdx); // drop everything up to the next section
+    }
+    // If no next heading, drop first ~1500 chars as a rough abstract cap
+    return text.slice(Math.min(text.length, 1500));
+  } catch {
+    return text;
   }
-  
-  // Build summary from key points across all sections
-  return keyPoints.join('. ') + '.';
+}
+
+function splitSentences(text) {
+  return text
+    .replace(/\s+/g, ' ')
+    .split(/(?<=[.!?])\s+(?=[A-Z0-9\(\[])/)
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+}
+
+function dedupeBySimilarity(sentences, threshold = 0.8) {
+  const result = [];
+  const jaccard = (a, b) => {
+    const sa = new Set(a.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
+    const sb = new Set(b.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
+    const inter = new Set([...sa].filter(x => sb.has(x))).size;
+    const union = new Set([...sa, ...sb]).size;
+    return union === 0 ? 0 : inter / union;
+  };
+  for (const s of sentences) {
+    if (!result.some(r => jaccard(r, s) >= threshold)) result.push(s);
+  }
+  return result;
+}
+
+function extractKeyPoints(text, maxPoints = 6) {
+  // Prefer sentences beyond abstract; pick across the text to cover sections
+  const cleaned = stripAbstractSection(text);
+  const sentences = splitSentences(cleaned).filter(s => s.length >= 60 && s.length <= 300);
+  if (sentences.length === 0) return '';
+
+  // Sample evenly across the document
+  const keyPoints = [];
+  const step = Math.max(1, Math.floor(sentences.length / (maxPoints + 1)));
+  for (let i = step; i < sentences.length && keyPoints.length < maxPoints; i += step) {
+    keyPoints.push(sentences[i]);
+  }
+  const deduped = dedupeBySimilarity(keyPoints, 0.75).slice(0, maxPoints);
+  return deduped.join(' ');
 }
 
 
-async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = "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" }) {
+async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = process.env.OPENROUTER_API_KEY }) {
   console.log(`Summarizing: ${title}`);
   console.log(`Text length: ${text.length} characters`);
   console.log(`API key present: ${!!apiKey}`);
   
   if (!apiKey) {
     // fallback: extract key points from all sections
-    console.log('⚠️  No API key - extracting key points from all sections');
-    return extractKeyPoints(text, 8);
+    console.log('⚠️  No API key - extracting key points (abstract removed)');
+    const summary = extractKeyPoints(text, 6);
+    return summary || 'Summary unavailable.';
   }
   try {
     const summary = await callOpenRouter({ apiKey, model, title, text });
     console.log(`✓ Summary generated (${summary.length} chars)`);
-    return summary || 'No summary generated.';
+    if (summary && summary.trim().length > 0) return summary;
+    // Rare empty LLM response: fallback
+    const fallback = extractKeyPoints(text, 6);
+    return fallback || 'Summary unavailable.';
   } catch (e) {
     console.error('OpenRouter error:', e.message);
     // Fallback to extractive if API fails
-    console.log('⚠️  Falling back to key points extraction');
-    return extractKeyPoints(text, 8);
+    console.log('⚠️  Falling back to key points extraction (abstract removed)');
+    const fallback = extractKeyPoints(text, 6);
+    return fallback || 'Summary unavailable.';
   }
 }
 

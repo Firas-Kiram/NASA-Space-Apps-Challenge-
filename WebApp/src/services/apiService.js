@@ -44,6 +44,20 @@ class ApiService {
     }
   }
 
+  async fetchResearchAreas(top = 12) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/research-areas?top=${encodeURIComponent(top)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching research areas:', error);
+      throw error;
+    }
+  }
+
   async fetchPublicationsByYear() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/publications/by-year`);
