@@ -44,9 +44,9 @@ function callOpenRouter({ apiKey, model, title, text }) {
     model,
     messages: [
       { role: 'system', content: 'You are a helpful assistant that summarizes scientific papers concisely while preserving key details.' },
-      { role: 'user', content: `Summarize the following scientific paper titled '${title}' , covering the main objectives, methods, results, and conclusions:\n\n${truncatedText}` }
+      { role: 'user', content: `Summarize the following scientific paper titled '${title}' in 3-5 sentences, covering the main objectives, methods, results, and conclusions. Be concise and factual.\n\n${truncatedText}` }
     ],
-    max_tokens: 400,
+    max_tokens: 200,
     temperature: 0.3
   });
 
@@ -57,7 +57,13 @@ function callOpenRouter({ apiKey, model, title, text }) {
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(payload)
+      'Accept': 'application/json',
+      'Content-Length': Buffer.byteLength(payload), 
+      // Recommended headers for OpenRouter routing
+      'HTTP-Referer': 'http://localhost:3000',
+      'Referer': 'http://localhost:3000',
+      'X-Title': 'NASA Space Apps Summarizer',
+      'User-Agent': 'nasa-space-apps-backend/1.0'
     }
   };
 
@@ -86,6 +92,11 @@ function callOpenRouter({ apiKey, model, title, text }) {
     req.on('error', (e) => {
       console.error('OpenRouter request error:', e.message);
       reject(e);
+    });
+    // Add a sensible timeout to avoid hanging
+    req.setTimeout(20000, () => {
+      console.warn('OpenRouter request timeout');
+      req.destroy(new Error('Request timeout'));
     });
     req.write(payload);
     req.end();
@@ -156,18 +167,19 @@ function extractKeyPoints(text, maxPoints = 6) {
 
 
 async function summarizeText({ title, text, model = 'qwen/qwen3-coder', apiKey = process.env.OPENROUTER_API_KEY }) {
+  const effectiveKey = apiKey || process.env.OPENROUTER_API_KEY || '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';
   console.log(`Summarizing: ${title}`);
   console.log(`Text length: ${text.length} characters`);
-  console.log(`API key present: ${!!apiKey}`);
+  console.log(`API key present: ${!!effectiveKey}`);
   
-  if (!apiKey) {
+  if (!effectiveKey) {
     // fallback: extract key points from all sections
     console.log('⚠️  No API key - extracting key points (abstract removed)');
     const summary = extractKeyPoints(text, 6);
     return summary || 'Summary unavailable.';
   }
   try {
-    const summary = await callOpenRouter({ apiKey, model, title, text });
+    const summary = await callOpenRouter({ apiKey: effectiveKey, model, title, text });
     console.log(`✓ Summary generated (${summary.length} chars)`);
     if (summary && summary.trim().length > 0) return summary;
     // Rare empty LLM response: fallback
@@ -194,7 +206,25 @@ async function summarizePapersByTitle({ titles, jsonFilePath, model = 'qwen/qwen
     const title = String(rawTitle);
     // Use lowercase for case-insensitive lookup
     const titleKey = title.toLowerCase();
-    const sections = groups.get(titleKey) || [];
+    let sections = groups.get(titleKey) || [];
+    // Fuzzy fallback when exact title key not found
+    if (sections.length === 0) {
+      const tokenize = (s) => Array.from(new Set(String(s).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean)));
+      const target = tokenize(title);
+      let bestKey = null;
+      let bestScore = 0;
+      for (const key of groups.keys()) {
+        const toks = tokenize(key);
+        const inter = toks.filter(t => target.includes(t)).length;
+        const union = new Set([...toks, ...target]).size || 1;
+        const score = inter / union;
+        if (score > bestScore) { bestScore = score; bestKey = key; }
+      }
+      if (bestKey && bestScore >= 0.2) {
+        console.log(`Fuzzy matched title -> "${bestKey}" (score=${bestScore.toFixed(2)})`);
+        sections = groups.get(bestKey) || [];
+      }
+    }
     
     console.log(`Found ${sections.length} sections for "${title}"`);
     
