@@ -28,8 +28,10 @@ function groupByTitle(data) {
     const title = (it.paper_title || it.title || '').toString();
     const text = (it.text || '').toString();
     if (!title || !text) continue;
-    if (!map.has(title)) map.set(title, []);
-    map.get(title).push(text);
+    // Use lowercase for case-insensitive comparison
+    const titleKey = title.toLowerCase();
+    if (!map.has(titleKey)) map.set(titleKey, []);
+    map.get(titleKey).push(text);
   }
   return map;
 }
@@ -99,7 +101,9 @@ async function summarizePapersByTitle({ titles, jsonFilePath, model = 'qwen/qwen
   const results = [];
   for (const rawTitle of titles) {
     const title = String(rawTitle);
-    const sections = groups.get(title) || [];
+    // Use lowercase for case-insensitive lookup
+    const titleKey = title.toLowerCase();
+    const sections = groups.get(titleKey) || [];
     if (sections.length === 0) {
       results.push({ title, summary: `No data found for '${title}' in the JSON file.` });
       continue;
