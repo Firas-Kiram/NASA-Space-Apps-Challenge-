@@ -37,6 +37,7 @@ const InsightsGaps = () => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('all');
   const [areas, setAreas] = useState([]); // [{name, count}]
   const [pubs, setPubs] = useState([]); // fresh publications from backend
+  const [byYear, setByYear] = useState([]); // [{year, count}]
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -46,12 +47,14 @@ const InsightsGaps = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const [publications, topAreas] = await Promise.all([
+        const [publications, topAreas, yearly] = await Promise.all([
           apiService.fetchPublications(),
-          apiService.fetchResearchAreas(12)
+          apiService.fetchResearchAreas(12),
+          apiService.fetchPublicationsByYear()
         ]);
         setPubs(publications || []);
         setAreas(topAreas);
+        setByYear((yearly || []).sort((a, b) => a.year - b.year));
         setError(null);
       } catch (e) {
         console.error('Insights load error:', e);
@@ -98,15 +101,58 @@ const InsightsGaps = () => {
     return Math.max(0, ...heatmapData.data.flat());
   }, [heatmapData]);
 
-  // Timeline data
-  const timelineEvents = [
-    { year: 2019, event: 'First ISS Plant Growth Study', type: 'milestone' },
-    { year: 2020, event: 'COVID-19 Impact on Research', type: 'challenge' },
-    { year: 2021, event: 'Mars Sample Return Mission Planning', type: 'milestone' },
-    { year: 2022, event: 'Artemis Program Bioscience Integration', type: 'milestone' },
-    { year: 2023, event: 'AI-Assisted Research Analysis Launch', type: 'innovation' },
-    { year: 2024, event: 'Current Research Peak', type: 'current' }
-  ];
+  // Build Research Timeline events from real by-year counts
+  const timelineEvents = useMemo(() => {
+    if (!byYear || byYear.length === 0) return [];
+    // Build per-year top keyword from pubs
+    const yearToTopKeyword = (() => {
+      const map = new Map();
+      const countsPerYear = new Map(); // year -> Map(keyword->count)
+      for (const pub of pubs) {
+        const dateStr = (pub.date || '').toString();
+        const yMatch = dateStr.match(/\b(19|20)\d{2}\b/);
+        if (!yMatch) continue;
+        const year = parseInt(yMatch[0], 10);
+        const rawKw = (pub.keywords || '').toString();
+        if (!rawKw) continue;
+        const kws = rawKw.split(/[;,|]/).map(k => k.trim()).filter(Boolean);
+        if (kws.length === 0) continue;
+        if (!countsPerYear.has(year)) countsPerYear.set(year, new Map());
+        const kwMap = countsPerYear.get(year);
+        for (const kw of kws) {
+          kwMap.set(kw, (kwMap.get(kw) || 0) + 1);
+        }
+      }
+      for (const [year, kwMap] of countsPerYear.entries()) {
+        let best = null;
+        let bestCount = -1;
+        for (const [kw, c] of kwMap.entries()) {
+          if (c > bestCount) { best = kw; bestCount = c; }
+        }
+        map.set(year, best || null);
+      }
+      return map;
+    })();
+
+    const maxCount = Math.max(...byYear.map(y => y.count));
+    return byYear.map((entry, idx) => {
+      const prev = idx > 0 ? byYear[idx - 1].count : null;
+      let type = 'trend';
+      if (entry.count === maxCount && idx === byYear.length - 1) type = 'current';
+      else if (prev != null) {
+        const change = prev === 0 ? (entry.count > 0 ? 1 : 0) : (entry.count - prev) / prev;
+        if (change >= 0.25) type = 'milestone';
+        else if (change <= -0.25) type = 'challenge';
+        else type = 'innovation';
+      }
+      const topKw = yearToTopKeyword.get(entry.year);
+      return {
+        year: entry.year,
+        event: topKw ? `${topKw}` : '',
+        type
+      };
+    });
+  }, [byYear, pubs]);
 
   const topGaps = [
     {
@@ -181,7 +227,7 @@ const InsightsGaps = () => {
           </div>
         </div>
 
-        {/* Timeline Strip */}
+        {/* Timeline Strip (real data) */}
         <div className="bg-white rounded-2xl p-6 shadow-md">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Research Timeline</h2>
           <div className="relative">
@@ -196,8 +242,8 @@ const InsightsGaps = () => {
                     'border-blue-500'
                   }`}></div>
                   <div className="mt-2 text-center max-w-24">
-                    <p className="text-xs font-medium text-gray-900">{event.year}</p>
-                    <p className="text-xs text-gray-600 mt-1 leading-tight">{event.event}</p>
+                    <p className="text-[11px] font-medium text-gray-900">{event.year}</p>
+                    <p className="text-[10px] text-gray-600 mt-1 leading-tight">{event.event}</p>
                   </div>
                 </div>
               ))}
@@ -359,22 +405,22 @@ const InsightsGaps = () => {
             const estFunding = (lowCount * 0.8 + midCount * 0.4).toFixed(1);
             return (
               <>
-                <div className="bg-white rounded-2xl p-6 shadow-md text-center">
+          <div className="bg-white rounded-2xl p-6 shadow-md text-center">
                   <div className="text-3xl font-bold text-purple-600 mb-2">{totalAreas}</div>
                   <div className="text-sm text-gray-600">Tracked Research Areas</div>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-md text-center">
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-md text-center">
                   <div className="text-3xl font-bold text-red-600 mb-2">{lowCount}</div>
-                  <div className="text-sm text-gray-600">High Priority</div>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-md text-center">
+            <div className="text-sm text-gray-600">High Priority</div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-md text-center">
                   <div className="text-3xl font-bold text-orange-600 mb-2">{midCount}</div>
                   <div className="text-sm text-gray-600">Medium Priority</div>
                 </div>
                 <div className="bg-white rounded-2xl p-6 shadow-md text-center">
                   <div className="text-3xl font-bold text-green-600 mb-2">${estFunding}M</div>
-                  <div className="text-sm text-gray-600">Est. Funding Needed</div>
-                </div>
+            <div className="text-sm text-gray-600">Est. Funding Needed</div>
+          </div>
               </>
             );
           })()}
