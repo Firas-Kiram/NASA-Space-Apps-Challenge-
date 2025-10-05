@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import searchService from '../services/searchService';
-import PDFViewer from './PDFViewer';
 
 const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,8 +11,7 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
-  const [showPDFViewer, setShowPDFViewer] = useState(false);
-  const [selectedPDF, setSelectedPDF] = useState(null);
+  const navigate = useNavigate();
   const searchRef = useRef(null);
   const suggestionsRef = useRef(null);
   const { logout, user } = useAuth();
@@ -59,21 +57,12 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
         setShowSuggestions(false);
         setSelectedIndex(-1);
         
-        // Open PDF in modal viewer if it's a publication with a link
-        if (suggestion.type === 'publication' && suggestion.link) {
-          setSelectedPDF({
-            url: suggestion.link,
-            title: suggestion.title
-          });
-          setShowPDFViewer(true);
+        if (suggestion.type === 'publication') {
+          navigate(`/publication/${encodeURIComponent(suggestion.title)}`);
         }
       };
 
-      // Handle closing the PDF viewer
-      const handleClosePDFViewer = () => {
-        setShowPDFViewer(false);
-        setSelectedPDF(null);
-      };
+      // (removed PDF modal handling)
 
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
@@ -332,14 +321,7 @@ const Header = ({ onToggleContextPanel, showContextToggle = false }) => {
       </div>
     </header>
 
-    {/* PDF Viewer Modal */}
-    {showPDFViewer && selectedPDF && (
-      <PDFViewer
-        pdfUrl={selectedPDF.url}
-        title={selectedPDF.title}
-        onClose={handleClosePDFViewer}
-      />
-    )}
+    {/* PDF modal removed; navigation to detail page instead */}
     </>
   );
 };

@@ -1,48 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import Layout from '../components/Layout';
-import SimpleBarChart from '../components/SimpleBarChart';
+import dataService from '../services/dataService';
 
 const PublicationDetail = () => {
+  const { id } = useParams();
   const [showSources, setShowSources] = useState(false);
-  const [activeSection, setActiveSection] = useState('abstract');
+  const [publication, setPublication] = useState(null);
 
-  // Mock publication data
-  const publication = {
-    title: "Effects of Microgravity on Plant Cell Wall Composition and Structural Integrity",
-    authors: ["Dr. Sarah Chen", "Dr. Michael Rodriguez", "Dr. Lisa Park", "Dr. James Wilson"],
-    year: 2024,
-    journal: "Nature Microgravity",
-    citations: 23,
-    doi: "10.1038/s41526-024-00123-4",
-    area: "Plant Biology",
-    abstract: "This comprehensive study investigates how microgravity conditions affect the structural composition and integrity of plant cell walls in various species. Through a series of controlled experiments aboard the International Space Station, we analyzed changes in cellulose, hemicellulose, and lignin content over extended periods. Our findings reveal significant alterations in cell wall architecture that have implications for plant growth and development in space environments.",
-    fullText: {
-      introduction: "Plant cell walls are complex structures that provide mechanical support and protection to plant cells. In terrestrial environments, gravity plays a crucial role in determining cell wall composition and orientation. However, the effects of microgravity on these fundamental structures remain poorly understood...",
-      methods: "We conducted experiments using Arabidopsis thaliana and Zea mays specimens grown in specialized growth chambers aboard the ISS. Cell wall composition was analyzed using advanced spectroscopic techniques...",
-      results: "Our analysis revealed a 15% reduction in cellulose content and a 23% increase in pectin levels in microgravity-grown specimens compared to ground controls. These changes were accompanied by altered cell wall thickness and modified mechanical properties...",
-      discussion: "The observed changes in cell wall composition suggest that plants undergo significant structural adaptations in response to microgravity. These findings have important implications for future space agriculture and long-duration missions..."
-    },
-    datasets: [
-      { name: "Cell Wall Composition Data", size: "2.3 MB", format: "CSV" },
-      { name: "Microscopy Images", size: "45.7 MB", format: "TIFF" },
-      { name: "Spectroscopic Analysis", size: "8.1 MB", format: "JSON" }
-    ],
-    citationData: [
-      { month: 'Jan', count: 2 },
-      { month: 'Feb', count: 4 },
-      { month: 'Mar', count: 6 },
-      { month: 'Apr', count: 3 },
-      { month: 'May', count: 8 }
-    ]
-  };
+  useEffect(() => {
+    const run = async () => {
+      await dataService.loadPublications();
+      const transformed = dataService.transformPublicationsForSearch(dataService.publications);
+      // Match by title param (encoded) or fallback by id if available
+      const decoded = decodeURIComponent(id);
+      const found = transformed.find(p => p.title === decoded || p.pub_id === decoded);
+      setPublication(found || null);
+    };
+    run();
+  }, [id]);
 
-  const sections = [
-    { id: 'abstract', name: 'Abstract' },
-    { id: 'introduction', name: 'Introduction' },
-    { id: 'methods', name: 'Methods' },
-    { id: 'results', name: 'Results' },
-    { id: 'discussion', name: 'Discussion' }
-  ];
+  if (!publication) {
+    return (
+      <Layout>
+        <div className="p-8">Loading publication…</div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -55,19 +39,19 @@ const PublicationDetail = () => {
                 {publication.title}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-gray-600 mb-4">
-                <span className="font-medium">{publication.authors.join(', ')}</span>
+                <span className="font-medium">{Array.isArray(publication.authors) ? publication.authors.join(', ') : 'N/A'}</span>
                 <span>•</span>
-                <span>{publication.journal}</span>
+                <span>{publication.journal || 'N/A'}</span>
                 <span>•</span>
-                <span>{publication.year}</span>
+                <span>{publication.year || 'N/A'}</span>
                 <span>•</span>
-                <span>{publication.citations} citations</span>
+                <span>{publication.citations || 0} citations</span>
               </div>
               <div className="flex items-center space-x-4">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                  {publication.area}
+                  {publication.tags && publication.tags[0] ? publication.tags[0] : 'Research'}
                 </span>
-                <span className="text-sm text-gray-500">DOI: {publication.doi}</span>
+                <span className="text-sm text-gray-500">PubMed Central</span>
               </div>
             </div>
             <div className="flex space-x-3 ml-6">
@@ -83,23 +67,7 @@ const PublicationDetail = () => {
             </div>
           </div>
 
-          {/* Dataset Links */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Associated Datasets</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {publication.datasets.map((dataset, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-gray-900">{dataset.name}</h4>
-                    <p className="text-sm text-gray-600">{dataset.size} • {dataset.format}</p>
-                  </div>
-                  <button className="px-3 py-1 text-sm text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors">
-                    Download
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Dataset Links - removed for real data */}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -123,12 +91,7 @@ const PublicationDetail = () => {
               </div>
               
               <div className="prose prose-sm max-w-none text-gray-700 mb-4">
-                <p>
-                  This groundbreaking study reveals that microgravity significantly alters plant cell wall composition, 
-                  with a notable 15% reduction in cellulose content and 23% increase in pectin levels. The research 
-                  demonstrates critical structural adaptations that plants undergo in space environments, providing 
-                  essential insights for future space agriculture initiatives.
-                </p>
+                <p>{publication.summary || 'Click "Summarize" button to generate an AI summary of this publication.'}</p>
               </div>
 
               {showSources && (
@@ -152,37 +115,7 @@ const PublicationDetail = () => {
               )}
             </div>
 
-            {/* Section Viewer */}
-            <div className="bg-white rounded-2xl shadow-md">
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 px-6">
-                  {sections.map((section) => (
-                    <button
-                      key={section.id}
-                      onClick={() => setActiveSection(section.id)}
-                      className={`py-4 text-sm font-medium border-b-2 transition-colors ${
-                        activeSection === section.id
-                          ? 'border-purple-500 text-purple-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {section.name}
-                    </button>
-                  ))}
-                </nav>
-              </div>
-              
-              <div className="p-6">
-                <div className="prose prose-sm max-w-none text-gray-700">
-                  {activeSection === 'abstract' && (
-                    <p>{publication.abstract}</p>
-                  )}
-                  {activeSection !== 'abstract' && (
-                    <p>{publication.fullText[activeSection]}</p>
-                  )}
-                </div>
-              </div>
-            </div>
+            {/* Section Viewer - removed temporarily, will be implemented later */}
           </div>
 
           {/* Right Column: Dataset Viewer */}
@@ -190,26 +123,10 @@ const PublicationDetail = () => {
             {/* Citation Metrics */}
             <div className="bg-white rounded-2xl p-6 shadow-md">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Citation Metrics</h3>
-              <div className="h-32 mb-4">
-                <SimpleBarChart 
-                  data={publication.citationData} 
-                  xKey="month" 
-                  yKey="count"
-                  color="#7c3aed"
-                />
-              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Citations</span>
-                  <span className="font-medium">{publication.citations}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">h-index Impact</span>
-                  <span className="font-medium">8</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Field Ranking</span>
-                  <span className="font-medium text-purple-600">Top 15%</span>
+                  <span className="font-medium">{publication.citations || 0}</span>
                 </div>
               </div>
             </div>
