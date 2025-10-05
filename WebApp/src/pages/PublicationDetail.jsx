@@ -12,7 +12,6 @@ const PublicationDetail = () => {
     const run = async () => {
       await dataService.loadPublications();
       const transformed = dataService.transformPublicationsForSearch(dataService.publications);
-      // Match by title param (encoded) or fallback by id if available
       const decoded = decodeURIComponent(id);
       const found = transformed.find(p => p.title === decoded || p.pub_id === decoded);
       setPublication(found || null);
@@ -55,14 +54,18 @@ const PublicationDetail = () => {
               </div>
             </div>
             <div className="flex space-x-3 ml-6">
-              <button className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-colors">
-                Download PDF
-              </button>
-              <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                Cite
-              </button>
-              <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                Share
+              <button 
+                onClick={() => {
+                  if (publication.link) {
+                    const pdfUrl = publication.link.endsWith('/') 
+                      ? `${publication.link}pdf` 
+                      : `${publication.link}/pdf`;
+                    window.open(pdfUrl, '_blank');
+                  }
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-colors"
+              >
+                View PDF
               </button>
             </div>
           </div>
