@@ -4,120 +4,6 @@ import Layout from '../components/Layout';
 import dataService from '../services/dataService';
 import apiService from '../services/apiService';
 
-// Helper function to parse inline bold text
-const parseInlineBold = (text) => {
-  const parts = [];
-  let lastIndex = 0;
-  const boldRegex = /\*\*(.*?)\*\*/g;
-  let match;
-  let key = 0;
-  
-  while ((match = boldRegex.exec(text)) !== null) {
-    // Add text before the bold part
-    if (match.index > lastIndex) {
-      parts.push(text.substring(lastIndex, match.index));
-    }
-    // Add bold text
-    parts.push(
-      <strong key={`bold-${key++}`} className="font-semibold text-gray-900">
-        {match[1]}
-      </strong>
-    );
-    lastIndex = match.index + match[0].length;
-  }
-  
-  // Add remaining text
-  if (lastIndex < text.length) {
-    parts.push(text.substring(lastIndex));
-  }
-  
-  return parts.length > 0 ? parts : text;
-};
-
-// Function to render markdown-formatted summary as HTML
-const renderMarkdownSummary = (text) => {
-  if (!text) return null;
-  
-  const lines = text.split('\n');
-  const elements = [];
-  let currentParagraph = [];
-  
-  lines.forEach((line, index) => {
-    const trimmed = line.trim();
-    
-    if (trimmed.startsWith('## ')) {
-      // Main title (##)
-      if (currentParagraph.length > 0) {
-        elements.push(
-          <p key={`p-${index}`} className="text-gray-700 leading-relaxed mb-4">
-            {parseInlineBold(currentParagraph.join(' '))}
-          </p>
-        );
-        currentParagraph = [];
-      }
-      elements.push(
-        <h2 key={`h2-${index}`} className="text-2xl font-bold text-purple-900 mb-6 mt-2">
-          {parseInlineBold(trimmed.substring(3))}
-        </h2>
-      );
-    } else if (trimmed.startsWith('### ')) {
-      // Section headers (###)
-      if (currentParagraph.length > 0) {
-        elements.push(
-          <p key={`p-${index}`} className="text-gray-700 leading-relaxed mb-4">
-            {parseInlineBold(currentParagraph.join(' '))}
-          </p>
-        );
-        currentParagraph = [];
-      }
-      elements.push(
-        <h3 key={`h3-${index}`} className="text-xl font-semibold text-purple-800 mb-3 mt-5">
-          {parseInlineBold(trimmed.substring(4))}
-        </h3>
-      );
-    } else if (trimmed.startsWith('- ')) {
-      // Bullet points
-      if (currentParagraph.length > 0) {
-        elements.push(
-          <p key={`p-${index}`} className="text-gray-700 leading-relaxed mb-4">
-            {parseInlineBold(currentParagraph.join(' '))}
-          </p>
-        );
-        currentParagraph = [];
-      }
-      elements.push(
-        <li key={`li-${index}`} className="text-gray-700 leading-relaxed ml-6 mb-2 list-disc">
-          {parseInlineBold(trimmed.substring(2))}
-        </li>
-      );
-    } else if (trimmed === '') {
-      // Empty line - end paragraph
-      if (currentParagraph.length > 0) {
-        elements.push(
-          <p key={`p-${index}`} className="text-gray-700 leading-relaxed mb-4">
-            {parseInlineBold(currentParagraph.join(' '))}
-          </p>
-        );
-        currentParagraph = [];
-      }
-    } else {
-      // Regular text - accumulate into paragraph
-      currentParagraph.push(trimmed);
-    }
-  });
-  
-  // Add remaining paragraph
-  if (currentParagraph.length > 0) {
-    elements.push(
-      <p key="final-p" className="text-gray-700 leading-relaxed mb-4">
-        {parseInlineBold(currentParagraph.join(' '))}
-      </p>
-    );
-  }
-  
-  return <div className="space-y-2">{elements}</div>;
-};
-
 const PublicationDetail = () => {
   const { id } = useParams();
   const [showSources, setShowSources] = useState(false);
@@ -234,18 +120,18 @@ const PublicationDetail = () => {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     <span>Generating AI summary...</span>
-              </div>
+                  </div>
                 )}
                 
                 {!loadingSummary && summaryError && (
                   <div className="text-red-600 bg-red-50 p-4 rounded-lg">
                     <p className="font-medium">Error generating summary</p>
                     <p className="text-sm">{summaryError}</p>
-                </div>
-              )}
+                  </div>
+                )}
                 
                 {!loadingSummary && !summaryError && summary && (
-                  renderMarkdownSummary(summary)
+                  <p>{summary}</p>
                 )}
                 
                 {!loadingSummary && !summaryError && !summary && (
